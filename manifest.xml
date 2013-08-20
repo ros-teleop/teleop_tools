@@ -1,0 +1,18 @@
+<package>
+  <description brief="joy_teleop">
+
+     joy_teleop
+
+  </description>
+  <author>Paul Mathieu</author>
+  <license>BSD</license>
+  <review status="unreviewed" notes=""/>
+  <url>http://ros.org/wiki/joy_teleop</url>
+
+  <depend package="rospy" />
+  <depend package="actionlib" />
+  <depend package="play_motion" />
+
+</package>
+
+

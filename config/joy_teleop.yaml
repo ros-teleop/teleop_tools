@@ -1,0 +1,74 @@
+teleop:
+  walk:
+    type: topic
+    message_type: geometry_msgs/Twist
+    topic_name: cmd_vel
+    deadman_buttons: [4]
+    axis_mappings:
+      -
+        axis: 1
+        target: linear.x
+        scale: 0.5
+        offset: -0.03
+      -
+        axis: 0
+        target: angular.z
+        scale: 0.5
+      -
+        axis: 2
+        target: linear.y
+        scale: 0.3
+
+  force_push:
+    type: topic
+    message_type: geometry_msgs/Wrench
+    topic_name: base_link_wrench
+    deadman_buttons: [5, 7]
+    axis_mappings:
+      -
+        axis: 3
+        target: force.x
+        scale: 40
+      -
+        axis: 2
+        target: force.y
+        scale: 40
+
+  surrender:
+    type: action
+    action_name: reach_pose
+    action_goal:
+      motion_name: surrender
+      duration: 3
+    buttons: [5, 3]
+
+  init:
+    type: action
+    action_name: play_motion
+    action_goal:
+      motion_name: home
+      duration:
+        secs: 3
+    buttons: [8, 1]
+
+  arms_front:
+    type: action
+    action_name: play_motion
+    action_goal:
+      motion_name: hands_front
+      duration:
+        secs: 3
+    buttons: [8, 0]
+
+  shake_hand:
+    type: action
+    action_name: play_motion
+    action_goal:
+      motion_name: handshaking
+    buttons: [5, 0]
+
+  stop_everything:
+    type: action
+    action_name: stop_joints
+    buttons: [4, 5, 6, 7]
+

@@ -29,12 +29,16 @@ class JoyTeleop:
         self.al_clients = {}
         self.message_types = {}
         self.command_list = {}
+        self.offline_actions = []
+
+        self.old_buttons = []
 
         for i in teleop_cfg:
             if self.command_exists(i):
                 rospy.logerr("command {} was duplicated".format(i))
                 continue
             action_type = teleop_cfg[i]['type']
+            self.add_command(i, teleop_cfg[i])
             if action_type == 'topic':
                 self.register_topic(i, teleop_cfg[i])
             elif action_type == 'action':
@@ -44,29 +48,34 @@ class JoyTeleop:
 
     def joy_callback(self, data):
         try:
-            for c in self.get_commands():
+            for c in self.command_list:
                 if self.match_command(c, data.buttons):
                     self.run_command(c, data)
         except JoyTeleopException as e:
             rospy.logerr("error while parsing joystick input: %s", str(e))
+        self.old_buttons = data.buttons
 
     def register_topic(self, name, command):
         """Add a topic publisher for a joystick command"""
+        topic_name = command['topic_name']
         try:
-            self.publishers[name] = rospy.Publisher(command['topic_name'],
-                                                    self.get_message_type(command['message_type']))
-            self.add_command(name, command)
+            topic_type = self.get_message_type(command['message_type'])
+            self.publishers[topic_name] = rospy.Publisher(topic_name, topic_type)
         except JoyTeleopException as e:
             rospy.logerr("could not regiter topic for command {}: {}".format(name, str(e)))
 
     def register_action(self, name, command):
         """Add an action client for a joystick command"""
+        action_name = command['action_name']
         try:
-            action_type = self.get_message_type(self.get_action_type(command['action_name']))
-            self.al_clients[name] = actionlib.SimpleActionClient(command['action_name'], action_type)
-            self.add_command(name, command)
+            action_type = self.get_message_type(self.get_action_type(action_name))
+            self.al_clients[action_name] = actionlib.SimpleActionClient(action_name, action_type)
+            if action_name in self.offline_actions:
+                self.offline_actions.remove(action_name)
         except JoyTeleopException as e:
             rospy.logerr("could not register action for command {}: {}".format(name, str(e)))
+            if action_name not in self.offline_actions:
+                self.offline_actions.append(action_name)
 
     def match_command(self, c, buttons):
         """Find a command mathing a joystick configuration"""
@@ -81,15 +90,17 @@ class JoyTeleop:
             command['buttons']= command['deadman_buttons']
         self.command_list[name] = command
 
-    def get_commands(self):
-        return self.command_list
-
     def run_command(self, command, joy_state):
         """Run a joystick command"""
-        if command in self.publishers:
+        cmd = self.command_list[command]
+        if cmd['type'] == 'topic':
             self.run_topic(command, joy_state)
-        elif command in self.al_clients:
-            self.run_action(command, joy_state)
+        elif cmd['type']== 'action':
+            if cmd['action_name'] in self.offline_actions:
+                self.register_action(command, self.command_list[command])
+            else:
+                if joy_state.buttons != self.old_buttons:
+                    self.run_action(command, joy_state)
         else:
             raise JoyTeleopException('command {} is neither a topic publisher nor an action client'
                                      .format(command))
@@ -100,13 +111,13 @@ class JoyTeleop:
         for mapping in cmd['axis_mappings']:
             val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
             self.set_member(msg, mapping['target'], val)
-        self.publishers[c].publish(msg)
+        self.publishers[cmd['topic_name']].publish(msg)
 
     def run_action(self, c, joy_state):
         cmd = self.command_list[c]
         goal = self.get_message_type(self.get_action_type(cmd['action_name'])[:-6] + 'Goal')()
         self.fill_msg(goal, cmd['action_goal'])
-        self.al_clients[c].send_goal(goal)
+        self.al_clients[cmd['action_name']].send_goal(goal)
 
     def fill_msg(self, msg, values):
         for k, v in values.iteritems():

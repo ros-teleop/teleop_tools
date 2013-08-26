@@ -34,7 +34,7 @@ class JoyTeleop:
         self.old_buttons = []
 
         for i in teleop_cfg:
-            if self.command_exists(i):
+            if i in self.command_list:
                 rospy.logerr("command {} was duplicated".format(i))
                 continue
             action_type = teleop_cfg[i]['type']
@@ -134,9 +134,6 @@ class JoyTeleop:
         for i in ml[:-1]:
             target = getattr(target, i)
         setattr(target, ml[-1], value)
-
-    def command_exists(self, cmd_name):
-        return cmd_name in self.command_list
 
     def get_message_type(self, type_name):
         if type_name not in self.message_types:

@@ -1,17 +1,9 @@
-cmake_minimum_required(VERSION 2.4.6)
+cmake_minimum_required(VERSION 2.8.3)
+project(joy_teleop)
 
-if(USE_ROSBUILD)
-  include($ENV{ROS_ROOT}/core/rosbuild/rosbuild.cmake)
+find_package(catkin REQUIRED COMPONENTS rospy play_motion)
 
-  rosbuild_init()
+catkin_package()
 
-else()
-
-  find_package(catkin REQUIRED COMPONENTS rospy play_motion actionlib)
-
-  catkin_package()
-
-  install(PROGRAMS scripts/joy_teleop.py
-        DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
-
-endif()
+install(PROGRAMS scripts/joy_teleop.py
+    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})

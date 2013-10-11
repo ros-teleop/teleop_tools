@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(joy_teleop)
 
-find_package(catkin REQUIRED COMPONENTS rospy play_motion)
+find_package(catkin REQUIRED)
 
 catkin_package()
 

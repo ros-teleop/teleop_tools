@@ -87,7 +87,9 @@ class JoyTeleop:
     def add_command(self, name, command):
         """Add a command to the command list"""
         if command['type'] == 'topic':
-            command['buttons']= command['deadman_buttons']
+            if 'deadman_buttons' not in command:
+                command['deadman_buttons'] = []
+            command['buttons'] = command['deadman_buttons']
         self.command_list[name] = command
 
     def run_command(self, command, joy_state):

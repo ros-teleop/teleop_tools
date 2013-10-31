@@ -90,6 +90,9 @@ class JoyTeleop:
             if 'deadman_buttons' not in command:
                 command['deadman_buttons'] = []
             command['buttons'] = command['deadman_buttons']
+        elif command['type'] == 'action':
+            if 'action_goal' not in command:
+                command['action_goal'] = {}
         self.command_list[name] = command
 
     def run_command(self, command, joy_state):

@@ -144,6 +144,7 @@ class JoyTeleop:
         if type_name not in self.message_types:
             try:
                 package, message = type_name.split('/')
+                roslib.load_manifest(package)
                 mod = importlib.import_module(package + '.msg')
                 self.message_types[type_name] = getattr(mod, message)
             except ValueError:

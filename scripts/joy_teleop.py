@@ -22,9 +22,6 @@ class JoyTeleop:
             rospy.logfatal("no configuration was found, taking node down")
             raise JoyTeleopException("no config")
 
-        teleop_cfg = rospy.get_param("teleop")
-        rospy.Subscriber('joy', sensor_msgs.msg.Joy, self.joy_callback)
-
         self.publishers = {}
         self.al_clients = {}
         self.message_types = {}
@@ -32,6 +29,8 @@ class JoyTeleop:
         self.offline_actions = []
 
         self.old_buttons = []
+
+        teleop_cfg = rospy.get_param("teleop")
 
         for i in teleop_cfg:
             if i in self.command_list:
@@ -45,6 +44,9 @@ class JoyTeleop:
                 self.register_action(i, teleop_cfg[i])
             else:
                 rospy.logerr("unknown type '%s' for command '%s'", action_type, i)
+
+        # Don't subscribe until everything has been initialized.
+        rospy.Subscriber('joy', sensor_msgs.msg.Joy, self.joy_callback)
 
     def joy_callback(self, data):
         try:

@@ -23,7 +23,6 @@ class JoyTeleop:
             raise JoyTeleopException("no config")
 
         teleop_cfg = rospy.get_param("teleop")
-        rospy.Subscriber('joy', sensor_msgs.msg.Joy, self.joy_callback)
 
         self.publishers = {}
         self.al_clients = {}
@@ -45,6 +44,9 @@ class JoyTeleop:
                 self.register_action(i, teleop_cfg[i])
             else:
                 rospy.logerr("unknown type '%s' for command '%s'", action_type, i)
+
+        # Don't subscribe until everything has been initialized.
+        rospy.Subscriber('joy', sensor_msgs.msg.Joy, self.joy_callback)
 
     def joy_callback(self, data):
         try:

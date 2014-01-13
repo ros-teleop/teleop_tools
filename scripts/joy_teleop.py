@@ -1,6 +1,4 @@
 #!/usr/bin/env python
-import roslib; roslib.load_manifest('joy_teleop')
-
 import importlib
 
 import rospy

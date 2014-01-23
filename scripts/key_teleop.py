@@ -82,7 +82,6 @@ class TextWindow():
 class KeyTeleop():
 
     _interface = None
-    _stop_requested = None
 
     _linear = None
     _angular = None
@@ -107,21 +106,12 @@ class KeyTeleop():
         angular_max = rospy.get_param('~turbo/angular_max', 1.2)
         self._rotation = Velocity(angular_min, angular_max, self._num_steps)
 
-    def start(self):
-        self._stop_requested = False
-        self._thread = Thread(target=self._mainloop)
-        self._thread.start()
-
-    def stop(self):
-        self._stop_requested = True
-        self._thread.join()
-
-    def _mainloop(self):
+    def run(self):
         self._linear = 0
         self._angular = 0
 
         rate = rospy.Rate(self._hz)
-        while not self._stop_requested:
+        while True:
             keycode = self._interface.read_key()
             if keycode:
                 if self._key_pressed(keycode):
@@ -171,6 +161,9 @@ class KeyTeleop():
                 self._linear = acc[0]
             if acc[1] is not None:
                 self._angular = acc[1]
+
+        elif keycode == ord('q'):
+            rospy.signal_shutdown('Bye')
         else:
             return False
 
@@ -179,7 +172,7 @@ class KeyTeleop():
     def _publish(self):
         self._interface.clear()
         self._interface.write_line(2, 'Linear: %d, Angular: %d' % (self._linear, self._angular))
-        self._interface.write_line(5, 'Use arrow keys to move, space to stop.')
+        self._interface.write_line(5, 'Use arrow keys to move, space to stop, q to exit.')
         self._interface.refresh()
 
         twist = self._get_twist(self._linear, self._angular)
@@ -188,9 +181,7 @@ class KeyTeleop():
 def main(stdscr):
     rospy.init_node('key_teleop')
     app = KeyTeleop(TextWindow(stdscr))
-    app.start()
-    rospy.spin()
-    app.stop()
+    app.run()
 
 if __name__ == '__main__':
     try:

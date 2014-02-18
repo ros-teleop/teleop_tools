@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package>
+  <name>teleop_tools</name>
+  <version>0.1.0</version>
+  <description>A set of generic teleoperation tools for any robot.</description>
+  <maintainer email="paul.mathieu@pal-robotics.com">Paul Mathieu</maintainer>
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>joy_teleop</run_depend>
+
+  <export>
+    <metapackage/>
+  </export>
+</package>

@@ -239,17 +239,16 @@ class SimpleKeyTeleop():
         self._linear = linear
 
     def _key_pressed(self, keycode):
-        now = rospy.get_time()
         if keycode == ord('q'):
             self._running = False
             rospy.signal_shutdown('Bye')
         elif keycode in self.movement_bindings:
-            self._last_pressed[keycode] = now
+            self._last_pressed[keycode] = rospy.get_time()
 
     def _publish(self):
         self._interface.clear()
-        self._interface.write_line(2, 'Linear: %d, Angular: %d' % (self._linear, self._angular))
-        self._interface.write_line(5, 'Use arrow keys to move, space to stop, q to exit.')
+        self._interface.write_line(2, 'Linear: %f, Angular: %f' % (self._linear, self._angular))
+        self._interface.write_line(5, 'Use arrow keys to move, q to exit.')
         self._interface.refresh()
 
         twist = self._get_twist(self._linear, self._angular)

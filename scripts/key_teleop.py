@@ -201,7 +201,8 @@ class SimpleKeyTeleop():
 
     def run(self):
         rate = rospy.Rate(self._hz)
-        while True:
+        self._running = True
+        while self._running:
             while True:
                 keycode = self._interface.read_key()
                 if keycode is None:
@@ -240,6 +241,7 @@ class SimpleKeyTeleop():
     def _key_pressed(self, keycode):
         now = rospy.get_time()
         if keycode == ord('q'):
+            self._running = False
             rospy.signal_shutdown('Bye')
         elif keycode in self.movement_bindings:
             self._last_pressed[keycode] = now

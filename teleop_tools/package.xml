@@ -9,6 +9,7 @@
   <buildtool_depend>catkin</buildtool_depend>
 
   <run_depend>joy_teleop</run_depend>
+  <run_depend>key_teleop</run_depend>
 
   <export>
     <metapackage/>

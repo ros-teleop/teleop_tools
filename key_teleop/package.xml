@@ -1,0 +1,16 @@
+<?xml version="1.0"?>
+<package>
+  <name>key_teleop</name>
+  <version>0.1.0</version>
+  <description>A text-based interface to send a robot movement commands</description>
+
+  <maintainer email="siegfried.gevatter@pal-robotics.com">Siegfried-A. Gevatter Pujals</maintainer>
+  <author email="siegfried.gevatter@pal-robotics.com">Siegfried-A. Gevatter Pujals</author>
+
+  <license>BSD</license>
+
+  <buildtool_depend>catkin</buildtool_depend>
+
+  <run_depend>rospy</run_depend>
+  <run_depend>geometry_msgs</run_depend>
+</package>

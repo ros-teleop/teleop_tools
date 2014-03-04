@@ -9,6 +9,7 @@ import rostopic
 class JoyTeleopException(Exception):
     pass
 
+
 class JoyTeleop:
     """
     Generic joystick teleoperation node.
@@ -46,6 +47,9 @@ class JoyTeleop:
         # Don't subscribe until everything has been initialized.
         rospy.Subscriber('joy', sensor_msgs.msg.Joy, self.joy_callback)
 
+        # Run a low-freq action updater
+        rospy.Timer(rospy.Duration(2.0), self.update_actions)
+
     def joy_callback(self, data):
         try:
             for c in self.command_list:
@@ -72,8 +76,7 @@ class JoyTeleop:
             self.al_clients[action_name] = actionlib.SimpleActionClient(action_name, action_type)
             if action_name in self.offline_actions:
                 self.offline_actions.remove(action_name)
-        except JoyTeleopException as e:
-            rospy.logerr("could not register action for command {}: {}".format(name, str(e)))
+        except JoyTeleopException:
             if action_name not in self.offline_actions:
                 self.offline_actions.append(action_name)
 
@@ -100,8 +103,11 @@ class JoyTeleop:
         cmd = self.command_list[command]
         if cmd['type'] == 'topic':
             self.run_topic(command, joy_state)
-        elif cmd['type']== 'action':
+        elif cmd['type'] == 'action':
             if cmd['action_name'] in self.offline_actions:
+                rospy.logerr("command {} was not played because the action "
+                             "server was unavailable. Trying to reconnect..."
+                             .format(cmd['action_name']))
                 self.register_action(command, self.command_list[command])
             else:
                 if joy_state.buttons != self.old_buttons:
@@ -159,6 +165,13 @@ class JoyTeleop:
             return rostopic._get_topic_type(rospy.resolve_name(action_name) + '/goal')[0][:-4]
         except TypeError:
             raise JoyTeleopException("could not find action {}".format(action_name))
+
+    def update_actions(self, evt=None):
+        for name, cmd in self.command_list.iteritems():
+            if cmd['type'] != 'action':
+                continue
+            if cmd['action_name'] in self.offline_actions:
+                self.register_action(name, cmd)
 
 
 if __name__ == "__main__":

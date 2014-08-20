@@ -7,9 +7,6 @@
 # Authors:
 #   * Siegfried-A. Gevatter
 
-import roslib
-roslib.load_manifest('key_teleop')
-
 import curses
 import math
 

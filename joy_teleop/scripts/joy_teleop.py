@@ -81,7 +81,7 @@ class JoyTeleop:
                 self.offline_actions.append(action_name)
 
     def match_command(self, c, buttons):
-        """Find a command mathing a joystick configuration"""
+        """Find a command matching a joystick configuration"""
         for b in self.command_list[c]['buttons']:
             if buttons[b] != 1:
                 return False

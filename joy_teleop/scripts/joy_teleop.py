@@ -83,10 +83,7 @@ class JoyTeleop:
     def match_command(self, c, buttons):
         """Find a command mathing a joystick configuration"""
         for b in self.command_list[c]['buttons']:
-            try:
-                if buttons[b] != 1:
-                    return False
-            except IndexError:
+            if b not in buttons or buttons[b] != 1:
                 return False
         return sum(buttons) == len(self.command_list[c]['buttons'])
 

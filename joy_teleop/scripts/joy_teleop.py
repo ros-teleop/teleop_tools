@@ -64,7 +64,7 @@ class JoyTeleop:
         topic_name = command['topic_name']
         try:
             topic_type = self.get_message_type(command['message_type'])
-            self.publishers[topic_name] = rospy.Publisher(topic_name, topic_type)
+            self.publishers[topic_name] = rospy.Publisher(topic_name, topic_type, queue_size=1)
         except JoyTeleopException as e:
             rospy.logerr("could not regiter topic for command {}: {}".format(name, str(e)))
 

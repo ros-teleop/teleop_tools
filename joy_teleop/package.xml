@@ -4,7 +4,7 @@
   <version>0.1.0</version>
   <description>A (to be) generic joystick interface to control a robot</description>
 
-  <maintainer email="paul.mathieu@pal-robotics.com">Paul Mathieu</maintainer>
+  <maintainer email="bence.magyar@pal-robotics.com">Bence Magyar</maintainer>
   <author email="paul.mathieu@pal-robotics.com">Paul Mathieu</author>
 
   <license>BSD</license>

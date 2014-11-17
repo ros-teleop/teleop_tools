@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.1 (2014-11-17)
+------------------
 * Change maintainer
 * checks for index out of bounds in buttons list
   `buttons` is a list, not a dict

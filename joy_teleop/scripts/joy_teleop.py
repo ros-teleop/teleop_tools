@@ -66,7 +66,7 @@ class JoyTeleop:
             topic_type = self.get_message_type(command['message_type'])
             self.publishers[topic_name] = rospy.Publisher(topic_name, topic_type)
         except JoyTeleopException as e:
-            rospy.logerr("could not regiter topic for command {}: {}".format(name, str(e)))
+            rospy.logerr("could not register topic for command {}: {}".format(name, str(e)))
 
     def register_action(self, name, command):
         """Add an action client for a joystick command"""

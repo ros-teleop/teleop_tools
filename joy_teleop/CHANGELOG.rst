@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.1.2 (2015-02-15)
+------------------
 * joy_teleop: fix minor typo
 * Contributors: G.A. vd. Hoorn
 

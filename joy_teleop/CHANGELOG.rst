@@ -2,6 +2,11 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* joy_teleop: fix minor typo
+* Contributors: G.A. vd. Hoorn
+
 0.1.1 (2014-11-17)
 ------------------
 * Change maintainer

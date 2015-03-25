@@ -10,12 +10,12 @@ import teleop_tools_msgs.msg as JTA
 
 class IncrementerServer:
     def __init__(self, controller_ns):
-        self._as = actionlib.SimpleActionServer(controller_ns + "/increment",
+        self._as = actionlib.SimpleActionServer("increment",
             JTA.IncrementAction, execute_cb=self._as_cb, auto_start=False)
-        self._ac = actionlib.SimpleActionClient(controller_ns + "/follow_joint_trajectory", FJTA)
+        self._ac = actionlib.SimpleActionClient("follow_joint_trajectory", FJTA)
         #TODO add timeout
         self._ac.wait_for_server()
-        self._service_client = rospy.ServiceProxy(controller_ns + "/query_state", QTS, True)
+        self._service_client = rospy.ServiceProxy("query_state", QTS, True)
         #TODO add timeout
         self._service_client.wait_for_service()
         result = self._service_client.call(rospy.Time.now())

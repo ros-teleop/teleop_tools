@@ -11,7 +11,7 @@ class IncrementerServer:
             TTIA, execute_cb=self._as_cb, auto_start=False)
         self._command_pub = rospy.Publisher("command", JointTrajectory, queue_size=1)
         state = rospy.wait_for_message("state", JTCS)
-        [self._value] = state.actual.positions
+        self._value = state.actual.positions
         self._goal = JointTrajectory()
         self._goal.joint_names = state.joint_names
         rospy.loginfo('Connected to ' + controller_ns)
@@ -23,11 +23,11 @@ class IncrementerServer:
 
     def increment_by(self, increment):
         state = rospy.wait_for_message("state", JTCS)
-        [self._value] = state.actual.positions
-        self._value += increment
+        self._value = state.actual.positions
+        self._value = [x + y for x, y in zip(self._value, increment)]
         rospy.loginfo('Sent goal of ' + str(self._value))
         point = JointTrajectoryPoint()
-        point.positions = [self._value]
+        point.positions = self._value
         point.time_from_start = rospy.Duration(0.1)
         self._goal.points = [point]
         self._command_pub.publish(self._goal)

@@ -2,8 +2,8 @@
 Changelog for package teleop_tools_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2015-08-03)
+------------------
 * Add teleop_tools_msgs
 * Contributors: Bence Magyar
 

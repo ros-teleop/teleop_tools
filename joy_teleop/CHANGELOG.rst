@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.0 (2015-08-03)
+------------------
 * Add example for incrementer
 * Update package.xmls
 * Add incrementer_server

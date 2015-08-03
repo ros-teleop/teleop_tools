@@ -2,6 +2,11 @@
 Changelog for package teleop_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Update package.xmls
+* Contributors: Bence Magyar
+
 0.1.2 (2015-02-15)
 ------------------
 

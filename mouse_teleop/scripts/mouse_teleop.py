@@ -44,7 +44,7 @@ class MouseTeleop():
         self._root.resizable(0, 0)
 
         # Create canvas:
-        self._canvas = Tkinter.Canvas(self._root, bg='black')
+        self._canvas = Tkinter.Canvas(self._root, bg='white')
 
         # Create canvas objects:
         self._canvas.create_arc(0, 0, 0, 0, fill='red', outline='red',

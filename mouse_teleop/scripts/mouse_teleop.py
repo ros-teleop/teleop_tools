@@ -72,10 +72,10 @@ class MouseTeleop():
         if self._holonomic:
             self._text_v_x.set('v_x = %0.2f m/s' % self._v_x)
             self._text_v_y.set('v_y = %0.2f m/s' % self._v_y)
-            self._text_w.set(  'w   = %0.2f º/s' % self._w)
+            self._text_w.set(  'w   = %0.2f deg/s' % self._w)
         else:
             self._text_v_x.set('v = %0.2f m/s' % self._v_x)
-            self._text_w.set(  'w = %0.2f º/s' % self._w)
+            self._text_w.set(  'w = %0.2f deg/s' % self._w)
 
         self._label_v_x.pack()
         if self._holonomic:
@@ -191,10 +191,10 @@ class MouseTeleop():
         if self._holonomic:
             self._text_v_x.set('v_x = %0.2f m/s' % self._v_x)
             self._text_v_y.set('v_y = %0.2f m/s' % self._v_y)
-            self._text_w.set(  'w   = %0.2f º/s' % numpy.rad2deg(self._w))
+            self._text_w.set(  'w   = %0.2f deg/s' % numpy.rad2deg(self._w))
         else:
             self._text_v_x.set('v = %0.2f m/s' % self._v_x)
-            self._text_w.set(  'w = %0.2f º/s' % numpy.rad2deg(self._w))
+            self._text_w.set(  'w = %0.2f deg/s' % numpy.rad2deg(self._w))
 
         twist = Twist(linear, angular)
         self._pub_cmd.publish(twist)

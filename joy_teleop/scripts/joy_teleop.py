@@ -101,7 +101,8 @@ class JoyTeleop:
         def __del__(self):
             # try to join our thread - no way I know of to interrupt a service
             # request
-            self._thread.join(1.0)
+            if self._thread.is_alive():
+                self._thread.join(1.0)
 
         def __call__(self, request):
             if self._thread.is_alive():

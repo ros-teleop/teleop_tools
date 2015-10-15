@@ -168,7 +168,7 @@ class JoyTeleop:
             if cmd['service_name'] in self.offline_services:
                 rospy.logerr("command {} was not played because the service "
                              "server was unavailable. Trying to reconnect..."
-                             .format(cmd['action_name']))
+                             .format(cmd['service_name']))
                 self.register_service(command, self.command_list[command])
             else:
                 if joy_state.buttons != self.old_buttons:

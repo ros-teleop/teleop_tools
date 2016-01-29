@@ -11,6 +11,6 @@ generate_messages(DEPENDENCIES actionlib_msgs)
 
 catkin_package(
   CATKIN_DEPENDS message_runtime 
-                 rospy actionlib_msgs
+                 actionlib_msgs
 )
 

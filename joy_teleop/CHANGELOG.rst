@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.1 (2016-01-29)
+------------------
 * Add support for services
   it is now possible to asynchronously send service requests on button presses
 * Adds queue_size keyword

@@ -1,5 +1,6 @@
 <launch>
-
+<!-- Please note that this is only an example!
+     It is not guaranteed to work with your setup but can be used as a starting point. -->
   <arg name="cmd_vel" default="input_joy/cmd_vel" />
   <arg name="teleop_config" default="$(find joy_teleop)/config/joy_teleop_example.yaml" />
 

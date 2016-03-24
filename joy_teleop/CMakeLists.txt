@@ -8,3 +8,8 @@ catkin_package(
 install(PROGRAMS scripts/joy_teleop.py 
                  scripts/incrementer_server.py
         DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+
+foreach(dir config launch)
+    install(DIRECTORY ${dir}/
+        DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/${dir})
+endforeach(dir)

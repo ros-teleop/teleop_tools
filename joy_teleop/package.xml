@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>joy_teleop</name>
-  <version>0.2.1</version>
+  <version>0.2.2</version>
   <description>A (to be) generic joystick interface to control a robot</description>
 
   <maintainer email="bence.magyar.robotics@gmail.com">Bence Magyar</maintainer>

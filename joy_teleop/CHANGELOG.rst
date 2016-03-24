@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.2 (2016-03-24)
+------------------
 * Add install rules for example files
 * gracefully handle missing joy axes
 * Contributors: Bence Magyar, Kopias Peter

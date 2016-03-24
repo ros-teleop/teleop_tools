@@ -2,6 +2,9 @@
 Changelog for package mouse_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.2.1 (2016-01-29)
 ------------------
 * Add mouse_teleop

@@ -5,11 +5,16 @@ from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from control_msgs.msg import JointTrajectoryControllerState as JTCS
 from teleop_tools_msgs.msg import IncrementAction as TTIA
 
+
 class IncrementerServer:
     def __init__(self, controller_ns):
         self._as = actionlib.SimpleActionServer("increment",
-            TTIA, execute_cb=self._as_cb, auto_start=False)
-        self._command_pub = rospy.Publisher("command", JointTrajectory, queue_size=1)
+                                                TTIA,
+                                                execute_cb=self._as_cb,
+                                                auto_start=False)
+        self._command_pub = rospy.Publisher("command",
+                                            JointTrajectory,
+                                            queue_size=1)
         state = rospy.wait_for_message("state", JTCS)
         self._value = state.actual.positions
         self._goal = JointTrajectory()

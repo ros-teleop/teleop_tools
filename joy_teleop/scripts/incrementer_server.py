@@ -23,7 +23,7 @@ class IncrementerServer:
 
     def increment_by(self, increment):
         state = rospy.wait_for_message("state", JTCS)
-        self._value = state.desired.positions
+        self._value = state.actual.positions
         self._value = [x + y for x, y in zip(self._value, increment)]
         rospy.loginfo('Sent goal of ' + str(self._value))
         point = JointTrajectoryPoint()

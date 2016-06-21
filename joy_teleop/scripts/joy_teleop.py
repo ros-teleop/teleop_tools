@@ -180,14 +180,21 @@ class JoyTeleop:
     def run_topic(self, c, joy_state):
         cmd = self.command_list[c]
         msg = self.get_message_type(cmd['message_type'])()
-        for mapping in cmd['axis_mappings']:
-            if len(joy_state.axes)<=mapping['axis']:
-              rospy.logerr('Joystick has only {} axes (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.axes), mapping['axis']))
-              val = 0.0
-            else:
-              val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
 
-            self.set_member(msg, mapping['target'], val)
+        if 'message_value' in cmd:
+            for param in cmd['message_value']:
+                self.set_member(msg, param['target'], param['value'])
+
+        else:
+            for mapping in cmd['axis_mappings']:
+                if len(joy_state.axes)<=mapping['axis']:
+                  rospy.logerr('Joystick has only {} axes (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.axes), mapping['axis']))
+                  val = 0.0
+                else:
+                  val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
+
+                self.set_member(msg, mapping['target'], val)
+                
         self.publishers[cmd['topic_name']].publish(msg)
 
     def run_action(self, c, joy_state):

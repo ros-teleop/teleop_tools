@@ -101,3 +101,13 @@ teleop:
       -
         target: linear.y
         value: 0.0
+
+  hello:
+    type: topic
+    message_type: std_msgs/String
+    topic_name: chatter
+    deadman_buttons: [1]
+    message_value:
+      -
+        target: data
+        value: 'Hello'

@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.3 (2016-07-18)
+------------------
 * Add hello publish to example
 * Rename to fix example launch file
 * Added example of feature to config file

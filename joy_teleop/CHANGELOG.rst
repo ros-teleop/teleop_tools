@@ -2,6 +2,17 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add hello publish to example
+* Rename to fix example launch file
+* Added example of feature to config file
+* Added message_value parameter to specify message content on topics
+* PEP8 style stuff
+* Fixes bug when keep asking for increments
+  would make the goal position grow infinitely instead of be of maximum 'current joint position' + 'increment quantity'
+* Contributors: Bence Magyar, Sam Pfeiffer, SomeshDaga
+
 0.2.2 (2016-03-24)
 ------------------
 * Add install rules for example files

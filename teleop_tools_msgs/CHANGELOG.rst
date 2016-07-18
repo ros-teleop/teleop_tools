@@ -2,6 +2,9 @@
 Changelog for package teleop_tools_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.2.2 (2016-03-24)
 ------------------
 

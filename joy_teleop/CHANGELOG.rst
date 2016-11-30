@@ -2,6 +2,11 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Replace joy_teleop.fill_msg with genpy.message.fill_message_args
+* Contributors: Stephen Street
+
 0.2.3 (2016-07-18)
 ------------------
 * Add hello publish to example

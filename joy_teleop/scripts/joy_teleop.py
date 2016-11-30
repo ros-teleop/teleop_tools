@@ -2,6 +2,7 @@
 import importlib
 
 import rospy
+import genpy.message
 from rospy import ROSException
 import sensor_msgs.msg
 import actionlib
@@ -200,24 +201,17 @@ class JoyTeleop:
     def run_action(self, c, joy_state):
         cmd = self.command_list[c]
         goal = self.get_message_type(self.get_action_type(cmd['action_name'])[:-6] + 'Goal')()
-        self.fill_msg(goal, cmd['action_goal'])
+        genpy.message.fill_message_args(goal, [cmd['action_goal']])
         self.al_clients[cmd['action_name']].send_goal(goal)
 
     def run_service(self, c, joy_state):
         cmd = self.command_list[c]
         request = self.get_service_type(cmd['service_name'])._request_class()
         # should work for requests, too
-        self.fill_msg(request, cmd['service_request'])
+        genpy.message.fill_message_args(request, [cmd['service_request']])
         if not self.srv_clients[cmd['service_name']](request):
             rospy.loginfo('Not sending new service request for command {} because previous request has not finished'
                           .format(c))
-
-    def fill_msg(self, msg, values):
-        for k, v in values.iteritems():
-            if type(v) is dict:
-                self.fill_msg(getattr(msg, k), v)
-            else:
-                setattr(msg, k, v)
 
     def set_member(self, msg, member, value):
         ml = member.split('.')

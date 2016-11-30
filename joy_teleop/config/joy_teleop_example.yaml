@@ -34,39 +34,6 @@ teleop:
         target: force.y
         scale: 40
 
-  surrender:
-    type: action
-    action_name: reach_pose
-    action_goal:
-      motion_name: surrender
-      duration: 3
-    buttons: [5, 3]
-
-  init:
-    type: action
-    action_name: play_motion
-    action_goal:
-      motion_name: home
-      duration:
-        secs: 3
-    buttons: [8, 1]
-
-  arms_front:
-    type: action
-    action_name: play_motion
-    action_goal:
-      motion_name: hands_front
-      duration:
-        secs: 3
-    buttons: [8, 0]
-
-  shake_hand:
-    type: action
-    action_name: play_motion
-    action_goal:
-      motion_name: handshaking
-    buttons: [5, 0]
-
   stop_everything:
     type: action
     action_name: stop_joints
@@ -111,3 +78,25 @@ teleop:
       -
         target: data
         value: 'Hello'
+
+  array:
+    type: topic
+    message_type: std_msgs/UInt8MultiArray
+    topic_name: bytes
+    deadman_buttons: [5]
+    message_value:
+      -
+        target: data
+        value: [1,3,3,7]
+
+  array2:
+    type: topic
+    message_type: std_msgs/UInt8MultiArray
+    topic_name: bytes
+    deadman_buttons: [3]
+    message_value:
+      -
+        target: data
+        value:
+          - 4
+          - 2

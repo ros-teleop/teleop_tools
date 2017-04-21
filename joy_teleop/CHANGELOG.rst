@@ -2,6 +2,11 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Remove duplicate examples, add list ones
+* Contributors: Bence Magyar
+
 0.2.4 (2016-11-30)
 ------------------
 * Replace joy_teleop.fill_msg with genpy.message.fill_message_args

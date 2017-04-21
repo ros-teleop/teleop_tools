@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.5 (2017-04-21)
+------------------
 * Remove duplicate examples, add list ones
 * Contributors: Bence Magyar
 

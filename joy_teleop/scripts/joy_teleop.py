@@ -61,10 +61,16 @@ class JoyTeleop:
         rospy.Timer(rospy.Duration(2.0), self.update_actions)
 
     def joy_callback(self, data):
+        longest_command = None
         try:
             for c in self.command_list:
-                if self.match_command(c, data.buttons):
-                    self.run_command(c, data)
+                if self.match_command(c, data.buttons) \
+                   and (longest_command is None
+                   or len(self.command_list[c]['buttons']) > len(self.command_list[longest_command]['buttons'])):
+                    longest_command = c
+
+            if longest_command is not None:
+                self.run_command(longest_command, data)
         except JoyTeleopException as e:
             rospy.logerr("error while parsing joystick input: %s", str(e))
         self.old_buttons = data.buttons

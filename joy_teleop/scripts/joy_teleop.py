@@ -198,7 +198,7 @@ class JoyTeleop:
                     if len(joy_state.buttons) > mapping['button']:
                         val = joy_state.buttons[mapping['button']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
                     else:
-                        rospy.logerr('Joystick has only {} buttons (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.axes), mapping['button']))
+                        rospy.logerr('Joystick has only {} buttons (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.buttons), mapping['button']))
                         val = 0.0
                 else:
                     rospy.logerr('No Supported axis_mappings type found in: {}'.format(mapping))

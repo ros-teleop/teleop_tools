@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.2.6 (2018-04-06)
+------------------
 * Support using buttons and axis in the same message
 * Contributors: Tim Clephas
 

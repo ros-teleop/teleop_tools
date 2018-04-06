@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>mouse_teleop</name>
-  <version>0.2.5</version>
+  <version>0.2.6</version>
   <description>A mouse teleop tool for holonomic mobile robots.</description>
 
   <maintainer email="enrique.fernandez.perdomo@gmail.com">Enrique Fernandez</maintainer>

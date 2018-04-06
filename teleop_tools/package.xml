@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package>
   <name>teleop_tools</name>
-  <version>0.2.5</version>
+  <version>0.2.6</version>
   <description>A set of generic teleoperation tools for any robot.</description>
   <maintainer email="bence.magyar.robotics@gmail.com">Bence Magyar</maintainer>
   <license>BSD</license>

@@ -135,7 +135,7 @@ class JoyTeleop:
         for b in self.command_list[c]['buttons']:
             if b < 0 or len(buttons) <= b or buttons[b] != 1:
                 return False
-        return sum(buttons) == len(self.command_list[c]['buttons'])
+        return sum(buttons) >= len(self.command_list[c]['buttons'])
 
     def add_command(self, name, command):
         """Add a command to the command list"""
@@ -188,14 +188,24 @@ class JoyTeleop:
 
         else:
             for mapping in cmd['axis_mappings']:
-                if len(joy_state.axes)<=mapping['axis']:
-                  rospy.logerr('Joystick has only {} axes (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.axes), mapping['axis']))
-                  val = 0.0
+                if 'axis' in mapping:
+                    if len(joy_state.axes) > mapping['axis']:
+                        val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
+                    else:
+                        rospy.logerr('Joystick has only {} axes (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.axes), mapping['axis']))
+                        val = 0.0
+                elif 'button' in mapping:
+                    if len(joy_state.buttons) > mapping['button']:
+                        val = joy_state.buttons[mapping['button']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
+                    else:
+                        rospy.logerr('Joystick has only {} buttons (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.buttons), mapping['button']))
+                        val = 0.0
                 else:
-                  val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
+                    rospy.logerr('No Supported axis_mappings type found in: {}'.format(mapping))
+                    val = 0.0
 
                 self.set_member(msg, mapping['target'], val)
-                
+
         self.publishers[cmd['topic_name']].publish(msg)
 
     def run_action(self, c, joy_state):

@@ -18,6 +18,10 @@ teleop:
         axis: 2
         target: linear.y
         scale: 0.3
+      -
+        button: 2
+        target: linear.z
+        scale: 3.0
 
   force_push:
     type: topic

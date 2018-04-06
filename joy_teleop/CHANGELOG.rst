@@ -2,6 +2,11 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Support using buttons and axis in the same message
+* Contributors: Tim Clephas
+
 0.2.5 (2017-04-21)
 ------------------
 * Remove duplicate examples, add list ones

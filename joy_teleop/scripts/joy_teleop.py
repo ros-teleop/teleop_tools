@@ -8,6 +8,7 @@ import sensor_msgs.msg
 import actionlib
 import rostopic
 import rosservice
+import re
 from threading import Thread
 from rosservice import ROSServiceException
 
@@ -186,25 +187,24 @@ class JoyTeleop:
             for param in cmd['message_value']:
                 self.set_member(msg, param['target'], param['value'])
 
-        else:
-            for mapping in cmd['axis_mappings']:
-                if 'axis' in mapping:
-                    if len(joy_state.axes) > mapping['axis']:
-                        val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
-                    else:
-                        rospy.logerr('Joystick has only {} axes (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.axes), mapping['axis']))
-                        val = 0.0
-                elif 'button' in mapping:
-                    if len(joy_state.buttons) > mapping['button']:
-                        val = joy_state.buttons[mapping['button']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
-                    else:
-                        rospy.logerr('Joystick has only {} buttons (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.buttons), mapping['button']))
-                        val = 0.0
+        for mapping in cmd['axis_mappings']:
+            if 'axis' in mapping:
+                if len(joy_state.axes) > mapping['axis']:
+                    val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
                 else:
-                    rospy.logerr('No Supported axis_mappings type found in: {}'.format(mapping))
+                    rospy.logerr('Joystick has only {} axes (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.axes), mapping['axis']))
                     val = 0.0
+            elif 'button' in mapping:
+                if len(joy_state.buttons) > mapping['button']:
+                    val = joy_state.buttons[mapping['button']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
+                else:
+                    rospy.logerr('Joystick has only {} buttons (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.buttons), mapping['button']))
+                    val = 0.0
+            else:
+                rospy.logerr('No Supported axis_mappings type found in: {}'.format(mapping))
+                val = 0.0
 
-                self.set_member(msg, mapping['target'], val)
+            self.set_member(msg, mapping['target'], val)
 
         self.publishers[cmd['topic_name']].publish(msg)
 
@@ -230,7 +230,17 @@ class JoyTeleop:
         target = msg
         for i in ml[:-1]:
             target = getattr(target, i)
-        setattr(target, ml[-1], value)
+
+        match = re.search('(.+)\[(\d+)\]', ml[-1])
+        if match:
+            name = match.group(1)
+            i = int(match.group(2))
+            tvalue = getattr(target, name)
+            if i >= len(tvalue):
+                tvalue.extend([0]*(i-len(tvalue)+1))
+            tvalue[i] = value
+        else:
+            setattr(target, ml[-1], value)
 
     def get_message_type(self, type_name):
         if type_name not in self.message_types:

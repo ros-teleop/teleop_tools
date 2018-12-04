@@ -104,3 +104,12 @@ teleop:
         value:
           - 4
           - 2
+
+  add_two_ints:
+    type: service
+    service_name: /add_two_ints
+    service_request:
+      a: 11
+      b: 31
+    service_persistent: False # False by default
+    buttons: [10]

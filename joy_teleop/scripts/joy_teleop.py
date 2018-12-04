@@ -91,7 +91,7 @@ class JoyTeleop:
                 self.offline_actions.append(action_name)
 
     class AsyncServiceProxy(object):
-        def __init__(self, name, service_class, persistent=True):
+        def __init__(self, name, service_class, persistent):
             try:
                 rospy.wait_for_service(name, timeout=2.0)
             except ROSException:
@@ -118,11 +118,15 @@ class JoyTeleop:
     def register_service(self, name, command):
         """ Add an AsyncServiceProxy for a joystick command """
         service_name = command['service_name']
+        if 'service_persistent' not in command:
+            command['service_persistent'] = False
+        service_persistent = command['service_persistent']
         try:
             service_type = self.get_service_type(service_name)
             self.srv_clients[service_name] = self.AsyncServiceProxy(
                 service_name,
-                service_type)
+                service_type,
+                service_persistent)
 
             if service_name in self.offline_services:
                 self.offline_services.remove(service_name)

@@ -210,6 +210,10 @@ class JoyTeleop:
 
                 self.set_member(msg, mapping['target'], val)
 
+        # If there is a stamp field, fill it with rospy.Time.now()
+        if hasattr(msg, 'header'):
+            msg.header.stamp = rospy.Time.now()
+
         self.publishers[cmd['topic_name']].publish(msg)
 
     def run_action(self, c, joy_state):

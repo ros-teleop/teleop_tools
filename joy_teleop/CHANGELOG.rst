@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.0 (2019-01-03)
+------------------
 * Fill in the timestamp of outgoing messages, if applicable.
 * add service example
 * Add option for persistent service, defaulted false

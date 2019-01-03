@@ -2,6 +2,13 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fill in the timestamp of outgoing messages, if applicable.
+* add service example
+* Add option for persistent service, defaulted false
+* Contributors: AndyZe, Jeremie Deray, Bence Magyar
+
 0.2.6 (2018-04-06)
 ------------------
 * Support using buttons and axis in the same message

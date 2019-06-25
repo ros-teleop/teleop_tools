@@ -1,4 +1,7 @@
-cmake_minimum_required(VERSION 2.8.3)
-project(teleop_tools)
-find_package(catkin REQUIRED)
-catkin_metapackage()
+cmake_minimum_required(VERSION 3.5)
+
+project(teleop_tools NONE)
+
+find_package(ament_cmake REQUIRED)
+
+ament_package()

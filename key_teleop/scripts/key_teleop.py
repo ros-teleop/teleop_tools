@@ -43,8 +43,8 @@ import curses
 import time
 
 # For 'q' keystroke exit
-import signal
 import os
+import signal
 
 import rclpy
 from rclpy.duration import Duration
@@ -53,7 +53,6 @@ from geometry_msgs.msg import Twist
 
 
 class Velocity(object):
-
     def __init__(self, min_velocity, max_velocity, num_steps):
         assert min_velocity > 0 and max_velocity > 0 and num_steps > 0
         self._min = min_velocity
@@ -284,7 +283,7 @@ class SimpleKeyTeleop(Node):
     def _key_pressed(self, keycode):
         if keycode == ord('q'):
             self._running = False
-            # TODO(artivis) no rclpy.shutdown ?
+            # TODO(artivis) no rclpy.signal_shutdown ?
             os.kill(os.getpid(), signal.SIGINT)
         elif keycode in self.movement_bindings:
             self._last_pressed[keycode] = self.get_clock().now()
@@ -310,7 +309,10 @@ def execute(stdscr):
 
 
 def main():
-    curses.wrapper(execute)
+    try:
+        curses.wrapper(execute)
+    except KeyboardInterrupt:
+        pass
 
 
 if __name__ == '__main__':

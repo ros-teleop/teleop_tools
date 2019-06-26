@@ -1,4 +1,38 @@
-#!/usr/bin/env python
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+#
+# Copyright (c) 2019 PAL Robotics SL.
+# All rights reserved.
+#
+# Software License Agreement (BSD License 2.0)
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of PAL Robotics SL. nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+
 import importlib
 
 import rospy
@@ -11,6 +45,7 @@ import rosservice
 from threading import Thread
 from rosservice import ROSServiceException
 
+
 class JoyTeleopException(Exception):
     pass
 
@@ -18,9 +53,11 @@ class JoyTeleopException(Exception):
 class JoyTeleop:
     """
     Generic joystick teleoperation node.
+
     Will not start without configuration, has to be stored in 'teleop' parameter.
     See config/joy_teleop.yaml for an example.
     """
+
     def __init__(self):
         if not rospy.has_param("teleop"):
             rospy.logfatal("no configuration was found, taking node down")
@@ -179,8 +216,9 @@ class JoyTeleop:
                 if joy_state.buttons != self.old_buttons:
                     self.run_service(command, joy_state)
         else:
-            raise JoyTeleopException('command {} is neither a topic publisher nor an action or service client'
-                                     .format(command))
+            raise JoyTeleopException(
+                'command {} is neither a topic publisher nor an action or service client'
+                .format(command))
 
     def run_topic(self, c, joy_state):
         cmd = self.command_list[c]
@@ -194,15 +232,21 @@ class JoyTeleop:
             for mapping in cmd['axis_mappings']:
                 if 'axis' in mapping:
                     if len(joy_state.axes) > mapping['axis']:
-                        val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
+                        val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + \
+                            mapping.get('offset', 0.0)
                     else:
-                        rospy.logerr('Joystick has only {} axes (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.axes), mapping['axis']))
+                        rospy.logerr('Joystick has only {} axes (indexed from 0),'
+                                     'but #{} was referenced in config.'.format(
+                                        len(joy_state.axes), mapping['axis']))
                         val = 0.0
                 elif 'button' in mapping:
                     if len(joy_state.buttons) > mapping['button']:
-                        val = joy_state.buttons[mapping['button']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
+                        val = joy_state.buttons[mapping['button']] * mapping.get('scale', 1.0) + \
+                            mapping.get('offset', 0.0)
                     else:
-                        rospy.logerr('Joystick has only {} buttons (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.buttons), mapping['button']))
+                        rospy.logerr('Joystick has only {} buttons (indexed from 0),'
+                                     'but #{} was referenced in config.'.format(
+                                        len(joy_state.buttons), mapping['button']))
                         val = 0.0
                 else:
                     rospy.logerr('No Supported axis_mappings type found in: {}'.format(mapping))
@@ -228,8 +272,8 @@ class JoyTeleop:
         # should work for requests, too
         genpy.message.fill_message_args(request, [cmd['service_request']])
         if not self.srv_clients[cmd['service_name']](request):
-            rospy.loginfo('Not sending new service request for command {} because previous request has not finished'
-                          .format(c))
+            rospy.loginfo('Not sending new service request for command {}'
+                          'because previous request has not finished'.format(c))
 
     def set_member(self, msg, member, value):
         ml = member.split('.')
@@ -251,7 +295,8 @@ class JoyTeleop:
             except ImportError:
                 raise JoyTeleopException("module {} could not be loaded".format(package))
             except AttributeError:
-                raise JoyTeleopException("message {} could not be loaded from module {}".format(package, message))
+                raise JoyTeleopException(
+                    "message {} could not be loaded from module {}".format(package, message))
         return self.message_types[type_name]
 
     def get_action_type(self, action_name):
@@ -263,9 +308,11 @@ class JoyTeleop:
     def get_service_type(self, service_name):
         if service_name not in self.service_types:
             try:
-                self.service_types[service_name] = rosservice.get_service_class_by_name(service_name)
+                self.service_types[service_name] = \
+                    rosservice.get_service_class_by_name(service_name)
             except ROSServiceException, e:
-                raise JoyTeleopException("service {} could not be loaded: {}".format(service_name, str(e)))
+                raise JoyTeleopException(
+                    "service {} could not be loaded: {}".format(service_name, str(e)))
         return self.service_types[service_name]
 
     def update_actions(self, evt=None):

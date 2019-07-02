@@ -48,20 +48,27 @@ def generate_test_description(ready_fn):
         env=proc_env,
     )
 
-    fibonacci_node = launch_ros.actions.Node(
+    fibonacci_server = launch_ros.actions.Node(
         package='action_tutorials',
-        node_executable='fibonacci_action_server'
+        node_executable='fibonacci_action_server.py'
+    )
+
+    add_two_ints_server = launch_ros.actions.Node(
+        package='demo_nodes_cpp',
+        node_executable='add_two_ints_server'
     )
 
     return launch.LaunchDescription([
             joy_teleop_node,
-            fibonacci_node,
+            fibonacci_server,
+            add_two_ints_server,
             # Start tests right away - no need to wait for anything
             launch.actions.OpaqueFunction(function=lambda context: ready_fn()),
-           ],
-           {
-            'joy_teleop': joy_teleop_node
-           }
+           ]
+           # ,
+           # {
+           #  'joy_teleop': joy_teleop_node
+           # }
            )
 
 

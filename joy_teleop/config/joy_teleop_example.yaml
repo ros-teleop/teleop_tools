@@ -97,6 +97,14 @@ joy_teleop:
         increment_by: [-0.05]
       buttons: [6]
 
+    fibonacci:
+      type: action
+      interface_type: action_tutorials/action/Fibonacci
+      action_name: fibonacci
+      action_goal:
+        order: 5
+      buttons: [1]
+
     add_two_ints:
       type: service
       interface_type: example_interfaces/srv/AddTwoInts

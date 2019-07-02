@@ -38,13 +38,11 @@ import rclpy
 import sensor_msgs.msg
 import time
 
+from rcl_interfaces.srv import ListParameters
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.parameter import PARAMETER_SEPARATOR_STRING
 from rosidl_runtime_py import set_message_fields
-
-from rcl_interfaces.srv import ListParameters
-from ros2srv.api import get_all_service_types
 
 
 class JoyTeleopException(Exception):
@@ -62,12 +60,6 @@ class JoyTeleop(Node):
     def __init__(self):
         super().__init__('joy_teleop', allow_undeclared_parameters=True,
                          automatically_declare_parameters_from_overrides=True)
-
-        parameter_list = self.get_parameters("teleop")
-
-        if not parameter_list:
-            self.get_logger().fatal('No configuration was found, taking node down.')
-            raise JoyTeleopException("No configuration was found.")
 
         self.config = {}
         self.pubs = {}
@@ -123,11 +115,17 @@ class JoyTeleop(Node):
         # wait for all responses
         rclpy.spin_until_future_complete(self, future)
 
-        if future.result is not None:
-            response = future.result()
-            for param_name in sorted(response.result.names):
-                pval = self.get_parameter(param_name).value
-                self.insert_dict(self.config, param_name, pval)
+        if future.result is None or not future.result():
+            self.get_logger().fatal('No configuration was found, taking node down.')
+            raise JoyTeleopException("No configuration was found.")
+
+        response = future.result()
+        if not response.result.names:
+            self.get_logger().fatal('No configuration was found, taking node down.')
+            raise JoyTeleopException("No configuration was found.")
+        for param_name in sorted(response.result.names):
+            pval = self.get_parameter(param_name).value
+            self.insert_dict(self.config, param_name, pval)
 
     def insert_dict(self, dict, key, value):
         split = key.split(PARAMETER_SEPARATOR_STRING, 1)
@@ -312,10 +310,10 @@ class JoyTeleop(Node):
 
     def run_service(self, c, joy_state):
         cmd = self.command_list[c]
-        request_type = self.get_service_type(cmd['service_name'])._request_class()
-        # should work for requests, too
-        set_message_fields(request_type, {'service_request': cmd['service_request']})
-        if not self.srv_clients[cmd['service_name']](request_type):
+        request = self.get_interface_type(cmd['interface_type'], '.srv').Request()
+        for target, value in cmd['service_request'].items():
+            set_message_fields(request, {target: value})
+        if not self.srv_clients[cmd['service_name']](request):
             self.get_logger().info('Not sending new service request for command {} '
                                    'because previous request has not finished'.format(c))
 

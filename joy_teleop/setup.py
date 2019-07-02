@@ -11,6 +11,7 @@ setup(
         ('share/' + package_name, ['package.xml']),
         ('share/' + package_name + '/config/', ['config/joy_teleop_example.yaml']),
         ('share/' + package_name + '/launch/', ['launch/example.launch.py']),
+        ('share/' + package_name + '/test/', ['test/key_teleop.test.py']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

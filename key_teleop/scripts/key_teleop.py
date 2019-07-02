@@ -313,6 +313,8 @@ def main():
         curses.wrapper(execute)
     except KeyboardInterrupt:
         pass
+    # except curses.error as c:
+        # print(c)
 
 
 if __name__ == '__main__':

@@ -12,7 +12,7 @@ setup(
         ('share/' + package_name + '/config/', ['config/joy_teleop_example.yaml']),
         ('share/' + package_name + '/launch/', ['launch/example.launch.py']),
     ],
-    install_requires=['setuptools', 'launch_ros'],
+    install_requires=['setuptools'],
     zip_safe=True,
     author='Paul Mathieu',
     author_email='paul.mathieu@pal-robotics.com',
@@ -36,6 +36,7 @@ setup(
         'console_scripts': [
             'joy_teleop = scripts.joy_teleop:main',
             'incrementer_server = scripts.incrementer_server:main',
+            'dummy = scripts.dummy:main',
         ],
     },
 )

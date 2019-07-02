@@ -8,9 +8,10 @@ setup(
     version='0.3.0',
     packages=find_packages(exclude=['test']),
     data_files=[
-        ('share/' + package_name, ['package.xml']),
+        ('share/' + package_name + '/', ['package.xml']),
+        ('share/' + package_name + '/config/', ['config/' + package_name + '.yaml']),
     ],
-    install_requires=['setuptools'],
+    install_requires=['setuptools'],  # , 'launch_ros'
     zip_safe=True,
     author='Siegfried-A. Gevatter Pujals',
     author_email='siegfried.gevatter@pal-robotics.com',

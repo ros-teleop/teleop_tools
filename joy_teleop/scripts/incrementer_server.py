@@ -48,7 +48,7 @@ from rclpy.node import Node
 
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 from control_msgs.msg import JointTrajectoryControllerState as JTCS
-from teleop_tools_msgs.msg import IncrementAction as TTIA
+from teleop_tools_msgs.action import Increment as TTIA
 
 
 class IncrementerServer(Node):

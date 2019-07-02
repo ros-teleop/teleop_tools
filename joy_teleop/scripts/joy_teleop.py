@@ -34,23 +34,24 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import importlib
-
-import rospy
-import genpy.message
-from rospy import ROSException
+import rclpy
 import sensor_msgs.msg
-import actionlib
-import rostopic
-import rosservice
-from threading import Thread
-from rosservice import ROSServiceException
+import time
+
+from rclpy.action import ActionClient
+from rclpy.node import Node
+from rclpy.parameter import PARAMETER_SEPARATOR_STRING
+from rosidl_runtime_py import set_message_fields
+
+from rcl_interfaces.srv import ListParameters
+from ros2srv.api import get_all_service_types
 
 
 class JoyTeleopException(Exception):
     pass
 
 
-class JoyTeleop:
+class JoyTeleop(Node):
     """
     Generic joystick teleoperation node.
 
@@ -59,14 +60,19 @@ class JoyTeleop:
     """
 
     def __init__(self):
-        if not rospy.has_param("teleop"):
-            rospy.logfatal("no configuration was found, taking node down")
-            raise JoyTeleopException("no config")
+        super().__init__('joy_teleop', allow_undeclared_parameters=True,
+                         automatically_declare_parameters_from_overrides=True)
 
-        self.publishers = {}
+        parameter_list = self.get_parameters("teleop")
+
+        if not parameter_list:
+            self.get_logger().fatal('No configuration was found, taking node down.')
+            raise JoyTeleopException("No configuration was found.")
+
+        self.config = {}
+        self.pubs = {}
         self.al_clients = {}
         self.srv_clients = {}
-        self.service_types = {}
         self.message_types = {}
         self.command_list = {}
         self.offline_actions = []
@@ -74,28 +80,65 @@ class JoyTeleop:
 
         self.old_buttons = []
 
-        teleop_cfg = rospy.get_param("teleop")
+        self.retrieve_config()
 
-        for i in teleop_cfg:
+        for i, config in self.config.items():
             if i in self.command_list:
-                rospy.logerr("command {} was duplicated".format(i))
+                self.get_logger().error("command {} was duplicated".format(i))
                 continue
-            action_type = teleop_cfg[i]['type']
-            self.add_command(i, teleop_cfg[i])
-            if action_type == 'topic':
-                self.register_topic(i, teleop_cfg[i])
-            elif action_type == 'action':
-                self.register_action(i, teleop_cfg[i])
-            elif action_type == 'service':
-                self.register_service(i, teleop_cfg[i])
+
+            type = config['type']
+
+            self.add_command(i, config)
+
+            if type == 'topic':
+                self.register_topic(i, config)
+            elif type == 'action':
+                self.register_action(i, config)
+            elif type == 'service':
+                self.register_service(i, config)
             else:
-                rospy.logerr("unknown type '%s' for command '%s'", action_type, i)
+                self.get_logger().error("unknown type '{type}'"
+                                        "for command '{i}'".format_map(locals()))
 
         # Don't subscribe until everything has been initialized.
-        rospy.Subscriber('joy', sensor_msgs.msg.Joy, self.joy_callback)
+        self._subscription = self.create_subscription(
+            sensor_msgs.msg.Joy, 'joy', self.joy_callback, 1)
 
         # Run a low-freq action updater
-        rospy.Timer(rospy.Duration(2.0), self.update_actions)
+        self._timer = self.create_timer(2.0, self.update_actions)
+
+    def retrieve_config(self):
+        service_name = self.get_name() + '/list_parameters'
+        client = self.create_client(ListParameters, service_name)
+
+        while not client.service_is_ready():
+            time.sleep(0.1)
+
+        request = ListParameters.Request()
+        # request.prefixes.append('services')
+        future = client.call_async(request)
+
+        rclpy.spin_once(self, timeout_sec=1.0)
+
+        # wait for all responses
+        rclpy.spin_until_future_complete(self, future)
+
+        if future.result is not None:
+            response = future.result()
+            for param_name in sorted(response.result.names):
+                # print('  {param_name}'.format_map(locals()))
+                pval = self.get_parameter(param_name).value
+                self.insert_dict(self.config, param_name, pval)
+
+    def insert_dict(self, dict, key, value):
+        split = key.split(PARAMETER_SEPARATOR_STRING, 1)
+        if len(split) > 1:
+            if not split[0] in dict:
+                dict[split[0]] = {}
+            self.insert_dict(dict[split[0]], split[1], value)
+        else:
+            dict[key] = value
 
     def joy_callback(self, data):
         try:
@@ -103,24 +146,26 @@ class JoyTeleop:
                 if self.match_command(c, data.buttons):
                     self.run_command(c, data)
         except JoyTeleopException as e:
-            rospy.logerr("error while parsing joystick input: %s", str(e))
+            self.get_logger().error("error while parsing joystick input: %s", str(e))
         self.old_buttons = data.buttons
 
     def register_topic(self, name, command):
-        """Add a topic publisher for a joystick command"""
+        """Add a topic publisher for a joystick command."""
         topic_name = command['topic_name']
         try:
-            topic_type = self.get_message_type(command['message_type'])
-            self.publishers[topic_name] = rospy.Publisher(topic_name, topic_type, queue_size=1)
+            topic_type = self.get_message_type(command['interface_type'], '.msg')
+            self.pubs[topic_name] = self.create_publisher(topic_type, topic_name, 1)
         except JoyTeleopException as e:
-            rospy.logerr("could not register topic for command {}: {}".format(name, str(e)))
+            self.get_logger().error(
+                "could not register topic for command {}: {}".format(name, str(e)))
 
     def register_action(self, name, command):
-        """Add an action client for a joystick command"""
+        """Add an action client for a joystick command."""
         action_name = command['action_name']
         try:
-            action_type = self.get_message_type(self.get_action_type(action_name))
-            self.al_clients[action_name] = actionlib.SimpleActionClient(action_name, action_type)
+            # action_type = self.get_message_type(self.get_action_type(action_name))
+            action_type = self.get_message_type(command['interface_type'], '.action')
+            self.al_clients[action_name] = ActionClient(self, action_type, action_name)
             if action_name in self.offline_actions:
                 self.offline_actions.remove(action_name)
         except JoyTeleopException:
@@ -128,42 +173,25 @@ class JoyTeleop:
                 self.offline_actions.append(action_name)
 
     class AsyncServiceProxy(object):
-        def __init__(self, name, service_class, persistent):
-            try:
-                rospy.wait_for_service(name, timeout=2.0)
-            except ROSException:
-                raise JoyTeleopException("Service {} is not available".format(name))
-            self._service_proxy = rospy.ServiceProxy(name, service_class, persistent)
-            self._thread = Thread(target=self._service_proxy, args=[])
-
-        def __del__(self):
-            # try to join our thread - no way I know of to interrupt a service
-            # request
-            if self._thread.is_alive():
-                self._thread.join(1.0)
+        def __init__(self, node, service_name, service_type):
+            self._service_client = node.create_client(service_type, service_name)
+            if not self._service_client.wait_for_service(timeout_sec=1.0):
+                raise JoyTeleopException("Service {} is not available".format(service_name))
 
         def __call__(self, request):
-            if self._thread.is_alive():
-                self._thread.join(0.01)
-                if self._thread.is_alive():
-                    return False
-
-            self._thread = Thread(target=self._service_proxy, args=[request])
-            self._thread.start()
+            self._service_client.call_async(request)
             return True
 
     def register_service(self, name, command):
-        """ Add an AsyncServiceProxy for a joystick command """
+        """Add an AsyncServiceProxy for a joystick command."""
+        print(command)
         service_name = command['service_name']
-        if 'service_persistent' not in command:
-            command['service_persistent'] = False
-        service_persistent = command['service_persistent']
         try:
-            service_type = self.get_service_type(service_name)
+            service_type = self.get_message_type(command['interface_type'], '.srv')
             self.srv_clients[service_name] = self.AsyncServiceProxy(
+                self,
                 service_name,
-                service_type,
-                service_persistent)
+                service_type)
 
             if service_name in self.offline_services:
                 self.offline_services.remove(service_name)
@@ -172,14 +200,27 @@ class JoyTeleop:
                 self.offline_services.append(service_name)
 
     def match_command(self, c, buttons):
-        """Find a command matching a joystick configuration"""
-        for b in self.command_list[c]['buttons']:
-            if b < 0 or len(buttons) <= b or buttons[b] != 1:
-                return False
-        return sum(buttons) >= len(self.command_list[c]['buttons'])
+        """Find a command matching a joystick configuration."""
+        if len(buttons) == 0 or len(self.command_list[c]['buttons']) == 0 or \
+           len(buttons) != len(self.command_list[c]['buttons']):
+            return False
+        if sorted(buttons) == sorted(self.command_list[c]['buttons']):
+            return True
+
+        # print('Testing: ', c)
+        # for b in self.command_list[c]['buttons']:
+        #     if c == 'hello':
+        #         print('buttons: ', buttons)
+        #         print('b: ', b)
+        #         print('b < 0: ', b < 0)
+        #         print('len(buttons) <= b: ', len(buttons) <= b)
+        #         print('buttons[b] != 1: ', buttons[b] != 1)
+        #     if b < 0 or len(buttons) <= b or buttons[b] != 1:
+        #         return False
+        # return sum(buttons) >= len(self.command_list[c]['buttons'])
 
     def add_command(self, name, command):
-        """Add a command to the command list"""
+        """Add a command to the command list."""
         if command['type'] == 'topic':
             if 'deadman_buttons' not in command:
                 command['deadman_buttons'] = []
@@ -193,24 +234,24 @@ class JoyTeleop:
         self.command_list[name] = command
 
     def run_command(self, command, joy_state):
-        """Run a joystick command"""
+        """Run a joystick command."""
         cmd = self.command_list[command]
         if cmd['type'] == 'topic':
             self.run_topic(command, joy_state)
         elif cmd['type'] == 'action':
             if cmd['action_name'] in self.offline_actions:
-                rospy.logerr("command {} was not played because the action "
-                             "server was unavailable. Trying to reconnect..."
-                             .format(cmd['action_name']))
+                self.get_logger().error("command {} was not played because the action "
+                                        "server was unavailable. Trying to reconnect..."
+                                        .format(cmd['action_name']))
                 self.register_action(command, self.command_list[command])
             else:
                 if joy_state.buttons != self.old_buttons:
                     self.run_action(command, joy_state)
         elif cmd['type'] == 'service':
             if cmd['service_name'] in self.offline_services:
-                rospy.logerr("command {} was not played because the service "
-                             "server was unavailable. Trying to reconnect..."
-                             .format(cmd['service_name']))
+                self.get_logger().error("command {} was not played because the service "
+                                        "server was unavailable. Trying to reconnect..."
+                                        .format(cmd['service_name']))
                 self.register_service(command, self.command_list[command])
             else:
                 if joy_state.buttons != self.old_buttons:
@@ -222,11 +263,11 @@ class JoyTeleop:
 
     def run_topic(self, c, joy_state):
         cmd = self.command_list[c]
-        msg = self.get_message_type(cmd['message_type'])()
+        msg = self.get_message_type(cmd['interface_type'], '.msg')()
 
         if 'message_value' in cmd:
-            for param in cmd['message_value']:
-                self.set_member(msg, param['target'], param['value'])
+            for target, param in cmd['message_value'].items():
+                self.set_member(msg, target, param['value'])
 
         else:
             for mapping in cmd['axis_mappings']:
@@ -235,45 +276,48 @@ class JoyTeleop:
                         val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + \
                             mapping.get('offset', 0.0)
                     else:
-                        rospy.logerr('Joystick has only {} axes (indexed from 0),'
-                                     'but #{} was referenced in config.'.format(
-                                        len(joy_state.axes), mapping['axis']))
+                        self.get_logger().error('Joystick has only {} axes (indexed from 0),'
+                                                'but #{} was referenced in config.'.format(
+                                                    len(joy_state.axes), mapping['axis']))
                         val = 0.0
                 elif 'button' in mapping:
                     if len(joy_state.buttons) > mapping['button']:
                         val = joy_state.buttons[mapping['button']] * mapping.get('scale', 1.0) + \
                             mapping.get('offset', 0.0)
                     else:
-                        rospy.logerr('Joystick has only {} buttons (indexed from 0),'
-                                     'but #{} was referenced in config.'.format(
-                                        len(joy_state.buttons), mapping['button']))
+                        self.get_logger().error('Joystick has only {} buttons (indexed from 0),'
+                                                'but #{} was referenced in config.'.format(
+                                                    len(joy_state.buttons), mapping['button']))
                         val = 0.0
                 else:
-                    rospy.logerr('No Supported axis_mappings type found in: {}'.format(mapping))
+                    self.get_logger().error(
+                        'No Supported axis_mappings type found in: {}'.format(mapping))
                     val = 0.0
 
                 self.set_member(msg, mapping['target'], val)
 
         # If there is a stamp field, fill it with rospy.Time.now()
         if hasattr(msg, 'header'):
-            msg.header.stamp = rospy.Time.now()
+            msg.header.stamp = self.get_clock().now()
 
-        self.publishers[cmd['topic_name']].publish(msg)
+        self.pubs[cmd['topic_name']].publish(msg)
 
     def run_action(self, c, joy_state):
         cmd = self.command_list[c]
-        goal = self.get_message_type(self.get_action_type(cmd['action_name'])[:-6] + 'Goal')()
-        genpy.message.fill_message_args(goal, [cmd['action_goal']])
-        self.al_clients[cmd['action_name']].send_goal(goal)
+        goal_type = self.get_message_type(
+            self.get_action_type(cmd['action_name'])[:-6] + 'Goal', '.msg')()
+        set_message_fields(goal_type, {'action_goal': cmd['action_goal']})
+        self.al_clients[cmd['action_name']].send_goal(goal_type)
+        # genpy.message.fill_message_args(goal, [cmd['action_goal']])
 
     def run_service(self, c, joy_state):
         cmd = self.command_list[c]
-        request = self.get_service_type(cmd['service_name'])._request_class()
+        request_type = self.get_service_type(cmd['service_name'])._request_class()
         # should work for requests, too
-        genpy.message.fill_message_args(request, [cmd['service_request']])
-        if not self.srv_clients[cmd['service_name']](request):
-            rospy.loginfo('Not sending new service request for command {}'
-                          'because previous request has not finished'.format(c))
+        set_message_fields(request_type, {'service_request': cmd['service_request']})
+        if not self.srv_clients[cmd['service_name']](request_type):
+            self.get_logger().info('Not sending new service request for command {} '
+                                   'because previous request has not finished'.format(c))
 
     def set_member(self, msg, member, value):
         ml = member.split('.')
@@ -284,11 +328,11 @@ class JoyTeleop:
             target = getattr(target, i)
         setattr(target, ml[-1], value)
 
-    def get_message_type(self, type_name):
+    def get_message_type(self, type_name, ext='.msg'):
         if type_name not in self.message_types:
             try:
-                package, message = type_name.split('/')
-                mod = importlib.import_module(package + '.msg')
+                package, type, message = type_name.split('/')
+                mod = importlib.import_module(package + ext)
                 self.message_types[type_name] = getattr(mod, message)
             except ValueError:
                 raise JoyTeleopException("message type format error")
@@ -301,34 +345,68 @@ class JoyTeleop:
 
     def get_action_type(self, action_name):
         try:
-            return rostopic._get_topic_type(rospy.resolve_name(action_name) + '/goal')[0][:-4]
+            # return rostopic._get_topic_type(rospy.resolve_name(action_name) + '/goal')[0][:-4]
+            raise RuntimeError('Not ported yet')
         except TypeError:
             raise JoyTeleopException("could not find action {}".format(action_name))
 
-    def get_service_type(self, service_name):
-        if service_name not in self.service_types:
-            try:
-                self.service_types[service_name] = \
-                    rosservice.get_service_class_by_name(service_name)
-            except ROSServiceException, e:
-                raise JoyTeleopException(
-                    "service {} could not be loaded: {}".format(service_name, str(e)))
-        return self.service_types[service_name]
+    # def get_service_type(self, service_name):
+    #     if service_name not in self.service_types:
+    #         try:
+    #             service_types = get_all_service_types()
+    #             srvs = {}
+    #             srvs.setdefault(service_name, [])
+    #             for package_name in sorted(service_types.keys()):
+    #                 for srv_name in sorted(service_types[package_name]):
+    #                     print('{package_name}/srv/{srv_name}'.format_map(locals()))
+    #                     if srv_name == service_name:
+    #                         print('APPENDING !')
+    #                         srvs[srv_name].append(package_name)
+    #
+    #             print('srvs')
+    #             print(srvs)
+    #
+    #             if len(srvs[service_name]):
+    #                 JoyTeleopException(
+    #                     'several services have the name {service_name}'.format_map(locals()))
+    #
+    #             service_type = srvs[service_name] + '/srv/' + service_name
+    #
+    #             return self.get_message_type(service_type, '.srv')
+    #         except RuntimeError as e:
+    #             pass
+
+        #         self.service_types[service_name] = \
+        #             rosservice.get_service_class_by_name(service_name)
+        #         raise RuntimeError('Not ported yet')
+        #     except RuntimeError as e:
+        #         raise JoyTeleopException(
+        #             "service {} could not be loaded: {}".format(service_name, str(e)))
+        # return self.service_types[service_name]
 
     def update_actions(self, evt=None):
-        for name, cmd in self.command_list.iteritems():
+        for name, cmd in self.command_list.items():
             if cmd['type'] != 'action':
                 continue
             if cmd['action_name'] in self.offline_actions:
                 self.register_action(name, cmd)
 
 
-if __name__ == "__main__":
+def main():
     try:
-        rospy.init_node('joy_teleop')
-        jt = JoyTeleop()
-        rospy.spin()
+        rclpy.init()
+
+        node = JoyTeleop()
+
+        rclpy.spin(node)
+
+        node.destroy_node()
+        rclpy.shutdown()
     except JoyTeleopException:
         pass
-    except rospy.ROSInterruptException:
+    except KeyboardInterrupt:
         pass
+
+
+if __name__ == '__main__':
+    main()

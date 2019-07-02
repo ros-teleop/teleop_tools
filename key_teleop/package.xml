@@ -5,9 +5,9 @@
   <description>A text-based interface to send a robot movement commands.</description>
 
   <maintainer email="bence.magyar.robotics@gmail.com">Bence Magyar</maintainer>
-  <author email="siegfried.gevatter@pal-robotics.com">Siegfried-A. Gevatter Pujals</author>
-
   <license>BSD</license>
+
+  <author email="siegfried.gevatter@pal-robotics.com">Siegfried-A. Gevatter Pujals</author>
 
   <exec_depend>geometry_msgs</exec_depend>
   <exec_depend>rclpy</exec_depend>

@@ -116,7 +116,6 @@ class JoyTeleop(Node):
             time.sleep(0.1)
 
         request = ListParameters.Request()
-        # request.prefixes.append('services')
         future = client.call_async(request)
 
         rclpy.spin_once(self, timeout_sec=1.0)
@@ -127,7 +126,6 @@ class JoyTeleop(Node):
         if future.result is not None:
             response = future.result()
             for param_name in sorted(response.result.names):
-                # print('  {param_name}'.format_map(locals()))
                 pval = self.get_parameter(param_name).value
                 self.insert_dict(self.config, param_name, pval)
 
@@ -153,7 +151,7 @@ class JoyTeleop(Node):
         """Add a topic publisher for a joystick command."""
         topic_name = command['topic_name']
         try:
-            topic_type = self.get_message_type(command['interface_type'], '.msg')
+            topic_type = self.get_interface_type(command['interface_type'], '.msg')
             self.pubs[topic_name] = self.create_publisher(topic_type, topic_name, 1)
         except JoyTeleopException as e:
             self.get_logger().error(
@@ -162,14 +160,16 @@ class JoyTeleop(Node):
     def register_action(self, name, command):
         """Add an action client for a joystick command."""
         action_name = command['action_name']
-        try:
-            # action_type = self.get_message_type(self.get_action_type(action_name))
-            action_type = self.get_message_type(command['interface_type'], '.action')
-            self.al_clients[action_name] = ActionClient(self, action_type, action_name)
+        action_type = self.get_interface_type(command['interface_type'], '.action')
+        self.al_clients[action_name] = ActionClient(self, action_type, action_name)
+
+        if self.al_clients[action_name].wait_for_server(timeout_sec=0.5):
             if action_name in self.offline_actions:
                 self.offline_actions.remove(action_name)
-        except JoyTeleopException:
+        else:
             if action_name not in self.offline_actions:
+                self.get_logger().warn(
+                    "action {} is not read yet".format(action_name))
                 self.offline_actions.append(action_name)
 
     class AsyncServiceProxy(object):
@@ -184,10 +184,9 @@ class JoyTeleop(Node):
 
     def register_service(self, name, command):
         """Add an AsyncServiceProxy for a joystick command."""
-        print(command)
         service_name = command['service_name']
         try:
-            service_type = self.get_message_type(command['interface_type'], '.srv')
+            service_type = self.get_interface_type(command['interface_type'], '.srv')
             self.srv_clients[service_name] = self.AsyncServiceProxy(
                 self,
                 service_name,
@@ -263,7 +262,7 @@ class JoyTeleop(Node):
 
     def run_topic(self, c, joy_state):
         cmd = self.command_list[c]
-        msg = self.get_message_type(cmd['interface_type'], '.msg')()
+        msg = self.get_interface_type(cmd['interface_type'], '.msg')()
 
         if 'message_value' in cmd:
             for target, param in cmd['message_value'].items():
@@ -304,11 +303,12 @@ class JoyTeleop(Node):
 
     def run_action(self, c, joy_state):
         cmd = self.command_list[c]
-        goal_type = self.get_message_type(
-            self.get_action_type(cmd['action_name'])[:-6] + 'Goal', '.msg')()
-        set_message_fields(goal_type, {'action_goal': cmd['action_goal']})
-        self.al_clients[cmd['action_name']].send_goal(goal_type)
-        # genpy.message.fill_message_args(goal, [cmd['action_goal']])
+        goal = self.get_interface_type(cmd['interface_type'], '.action').Goal()
+        for target, value in cmd['action_goal'].items():
+            set_message_fields(goal, {target: value})
+
+        # No need to wait
+        self.al_clients[cmd['action_name']].send_goal_async(goal)
 
     def run_service(self, c, joy_state):
         cmd = self.command_list[c]
@@ -328,7 +328,7 @@ class JoyTeleop(Node):
             target = getattr(target, i)
         setattr(target, ml[-1], value)
 
-    def get_message_type(self, type_name, ext='.msg'):
+    def get_interface_type(self, type_name, ext):
         if type_name not in self.message_types:
             try:
                 package, type, message = type_name.split('/')
@@ -342,47 +342,6 @@ class JoyTeleop(Node):
                 raise JoyTeleopException(
                     "message {} could not be loaded from module {}".format(package, message))
         return self.message_types[type_name]
-
-    def get_action_type(self, action_name):
-        try:
-            # return rostopic._get_topic_type(rospy.resolve_name(action_name) + '/goal')[0][:-4]
-            raise RuntimeError('Not ported yet')
-        except TypeError:
-            raise JoyTeleopException("could not find action {}".format(action_name))
-
-    # def get_service_type(self, service_name):
-    #     if service_name not in self.service_types:
-    #         try:
-    #             service_types = get_all_service_types()
-    #             srvs = {}
-    #             srvs.setdefault(service_name, [])
-    #             for package_name in sorted(service_types.keys()):
-    #                 for srv_name in sorted(service_types[package_name]):
-    #                     print('{package_name}/srv/{srv_name}'.format_map(locals()))
-    #                     if srv_name == service_name:
-    #                         print('APPENDING !')
-    #                         srvs[srv_name].append(package_name)
-    #
-    #             print('srvs')
-    #             print(srvs)
-    #
-    #             if len(srvs[service_name]):
-    #                 JoyTeleopException(
-    #                     'several services have the name {service_name}'.format_map(locals()))
-    #
-    #             service_type = srvs[service_name] + '/srv/' + service_name
-    #
-    #             return self.get_message_type(service_type, '.srv')
-    #         except RuntimeError as e:
-    #             pass
-
-        #         self.service_types[service_name] = \
-        #             rosservice.get_service_class_by_name(service_name)
-        #         raise RuntimeError('Not ported yet')
-        #     except RuntimeError as e:
-        #         raise JoyTeleopException(
-        #             "service {} could not be loaded: {}".format(service_name, str(e)))
-        # return self.service_types[service_name]
 
     def update_actions(self, evt=None):
         for name, cmd in self.command_list.items():

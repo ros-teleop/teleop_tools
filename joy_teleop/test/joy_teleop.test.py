@@ -15,7 +15,6 @@
 import os
 import time
 import unittest
-# import uuid
 
 import launch
 import launch_ros

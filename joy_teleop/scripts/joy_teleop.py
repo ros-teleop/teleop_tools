@@ -101,29 +101,7 @@ class JoyTeleop(Node):
         self._timer = self.create_timer(2.0, self.update_actions)
 
     def retrieve_config(self):
-        service_name = self.get_name() + '/list_parameters'
-        client = self.create_client(ListParameters, service_name)
-
-        while not client.service_is_ready():
-            time.sleep(0.1)
-
-        request = ListParameters.Request()
-        future = client.call_async(request)
-
-        rclpy.spin_once(self, timeout_sec=1.0)
-
-        # wait for all responses
-        rclpy.spin_until_future_complete(self, future)
-
-        if future.result is None or not future.result():
-            self.get_logger().fatal('No configuration was found, taking node down.')
-            raise JoyTeleopException("No configuration was found.")
-
-        response = future.result()
-        if not response.result.names:
-            self.get_logger().fatal('No configuration was found, taking node down.')
-            raise JoyTeleopException("No configuration was found.")
-        for param_name in sorted(response.result.names):
+        for param_name in sorted(list(self._parameters.keys())):
             pval = self.get_parameter(param_name).value
             self.insert_dict(self.config, param_name, pval)
 

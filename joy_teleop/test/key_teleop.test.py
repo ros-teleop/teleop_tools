@@ -48,15 +48,15 @@ def generate_test_description(ready_fn):
         env=proc_env,
     )
 
-    fibonacci_server = launch_ros.actions.Node(
-        package='action_tutorials',
-        node_executable='fibonacci_action_server.py'
-    )
-
-    add_two_ints_server = launch_ros.actions.Node(
-        package='demo_nodes_cpp',
-        node_executable='add_two_ints_server'
-    )
+    # fibonacci_server = launch_ros.actions.Node(
+    #     package='action_tutorials',
+    #     node_executable='fibonacci_action_server.py'
+    # )
+    #
+    # add_two_ints_server = launch_ros.actions.Node(
+    #     package='demo_nodes_cpp',
+    #     node_executable='add_two_ints_server'
+    # )
 
     return launch.LaunchDescription([
             joy_teleop_node,
@@ -131,28 +131,26 @@ class TestJoyTeleop(unittest.TestCase):
             print(msg)
             assert msg.data == 'Hello'
 
-    def test_fibonacci(self):
-
-        self.msg.buttons = [1]
-        self.publisher.publish(self.msg)
-
-        # Wait until the talker transmits messages over the ROS topic
-        end_time = time.time() + 10
-        while time.time() < end_time:
-            self.publisher.publish(self.msg)
-            self.spin_rclpy(1.0)
-
-        # TODO(artivis)
-
-    def test_add_two_ints(self):
-
-        self.msg.buttons = [10]
-        self.publisher.publish(self.msg)
-
-        # Wait until the talker transmits messages over the ROS topic
-        end_time = time.time() + 10
-        while time.time() < end_time:
-            self.publisher.publish(self.msg)
-            self.spin_rclpy(1.0)
-
-        # TODO(artivis)
+    # # TODO(artivis)
+    # def test_fibonacci(self):
+    #
+    #     self.msg.buttons = [1]
+    #     self.publisher.publish(self.msg)
+    #
+    #     # Wait until the talker transmits messages over the ROS topic
+    #     end_time = time.time() + 10
+    #     while time.time() < end_time:
+    #         self.publisher.publish(self.msg)
+    #         self.spin_rclpy(1.0)
+    #
+    # # TODO(artivis)
+    # def test_add_two_ints(self):
+    #
+    #     self.msg.buttons = [10]
+    #     self.publisher.publish(self.msg)
+    #
+    #     # Wait until the talker transmits messages over the ROS topic
+    #     end_time = time.time() + 10
+    #     while time.time() < end_time:
+    #         self.publisher.publish(self.msg)
+    #         self.spin_rclpy(1.0)

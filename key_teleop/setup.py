@@ -11,7 +11,7 @@ setup(
         ('share/' + package_name + '/', ['package.xml']),
         ('share/' + package_name + '/config/', ['config/' + package_name + '.yaml']),
     ],
-    install_requires=['setuptools'],  # , 'launch_ros'
+    install_requires=['setuptools'],
     zip_safe=True,
     author='Siegfried-A. Gevatter Pujals',
     author_email='siegfried.gevatter@pal-robotics.com',

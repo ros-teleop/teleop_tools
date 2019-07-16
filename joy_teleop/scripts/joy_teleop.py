@@ -177,10 +177,9 @@ class JoyTeleop(Node):
     def match_command(self, c, buttons):
         """Find a command matching a joystick configuration."""
         if len(buttons) == 0 or len(self.command_list[c]['buttons']) == 0 or \
-           len(buttons) != len(self.command_list[c]['buttons']):
+           len(buttons) <= max(self.command_list[c]['buttons']):
             return False
-        if sorted(buttons) == sorted(self.command_list[c]['buttons']):
-            return True
+        return any([buttons[cmd_button] for cmd_button in self.command_list[c]['buttons']])
 
         # print('Testing: ', c)
         # for b in self.command_list[c]['buttons']:
@@ -241,35 +240,36 @@ class JoyTeleop(Node):
         msg = self.get_interface_type(cmd['interface_type'], '.msg')()
 
         if 'message_value' in cmd:
-            for target, param in cmd['message_value'].items():
-                self.set_member(msg, target, param['value'])
+            if cmd['message_value'] != None:
+                for target, param in cmd['message_value'].items():
+                    self.set_member(msg, target, param['value'])
 
         else:
-            for mapping in cmd['axis_mappings']:
-                if 'axis' in mapping:
-                    if len(joy_state.axes) > mapping['axis']:
-                        val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + \
-                            mapping.get('offset', 0.0)
+            for mapping, values in cmd['axis_mappings'].items():
+                if 'axis' in values:
+                    if len(joy_state.axes) > values['axis']:
+                        val = joy_state.axes[values['axis']] * values.get('scale', 1.0) + \
+                            values.get('offset', 0.0)
                     else:
                         self.get_logger().error('Joystick has only {} axes (indexed from 0),'
                                                 'but #{} was referenced in config.'.format(
-                                                    len(joy_state.axes), mapping['axis']))
+                                                    len(joy_state.axes), values['axis']))
                         val = 0.0
-                elif 'button' in mapping:
-                    if len(joy_state.buttons) > mapping['button']:
-                        val = joy_state.buttons[mapping['button']] * mapping.get('scale', 1.0) + \
-                            mapping.get('offset', 0.0)
+                elif 'button' in values:
+                    if len(joy_state.buttons) > values['button']:
+                        val = joy_state.buttons[values['button']] * values.get('scale', 1.0) + \
+                            values.get('offset', 0.0)
                     else:
                         self.get_logger().error('Joystick has only {} buttons (indexed from 0),'
                                                 'but #{} was referenced in config.'.format(
-                                                    len(joy_state.buttons), mapping['button']))
+                                                    len(joy_state.buttons), values['button']))
                         val = 0.0
                 else:
                     self.get_logger().error(
                         'No Supported axis_mappings type found in: {}'.format(mapping))
                     val = 0.0
 
-                self.set_member(msg, mapping['target'], val)
+                self.set_member(msg, mapping, val)
 
         # If there is a stamp field, fill it with rospy.Time.now()
         if hasattr(msg, 'header'):
@@ -296,7 +296,7 @@ class JoyTeleop(Node):
                                    'because previous request has not finished'.format(c))
 
     def set_member(self, msg, member, value):
-        ml = member.split('.')
+        ml = member.split('-')
         if len(ml) < 1:
             return
         target = msg

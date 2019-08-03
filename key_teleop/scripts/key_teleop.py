@@ -39,7 +39,6 @@
 #   * Jeremie Deray (artivis)
 
 import curses
-# import math
 import time
 
 # For 'q' keystroke exit

@@ -181,18 +181,6 @@ class JoyTeleop(Node):
             return False
         return any([buttons[cmd_button] for cmd_button in self.command_list[c]['buttons']])
 
-        # print('Testing: ', c)
-        # for b in self.command_list[c]['buttons']:
-        #     if c == 'hello':
-        #         print('buttons: ', buttons)
-        #         print('b: ', b)
-        #         print('b < 0: ', b < 0)
-        #         print('len(buttons) <= b: ', len(buttons) <= b)
-        #         print('buttons[b] != 1: ', buttons[b] != 1)
-        #     if b < 0 or len(buttons) <= b or buttons[b] != 1:
-        #         return False
-        # return sum(buttons) >= len(self.command_list[c]['buttons'])
-
     def add_command(self, name, command):
         """Add a command to the command list."""
         if command['type'] == 'topic':

@@ -35,7 +35,7 @@
 #
 #
 # Authors:
-#   * Bence magyar
+#   * Bence Magyar
 #   * Sam Pfeiffer
 #   * Jeremie Deray (artivis)
 

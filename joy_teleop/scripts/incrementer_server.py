@@ -57,10 +57,7 @@ class IncrementerServer(Node):
 
         self._has_new_message = False
 
-        self._as = ActionServer(self,
-                                TTIA,
-                                "increment",
-                                self._as_cb)
+        self._as = ActionServer(self, TTIA, "increment", self._as_cb)
 
         self._command_pub = self.create_publisher(JointTrajectory, 'command', 1)
 

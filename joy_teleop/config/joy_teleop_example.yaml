@@ -76,11 +76,6 @@ joy_teleop:
             - 4
             - 2
 
-    # stop_everything:
-    #   type: action
-    #   action_name: stop_joints
-    #   buttons: [4, 5, 6, 7]
-
     torso_up:
       type: action
       interface_type: teleop_tools_msgs/action/Increment
@@ -103,7 +98,7 @@ joy_teleop:
       action_name: fibonacci
       action_goal:
         order: 5
-      buttons: [1]
+      buttons: [4, 5, 6, 7]
 
     add_two_ints:
       type: service

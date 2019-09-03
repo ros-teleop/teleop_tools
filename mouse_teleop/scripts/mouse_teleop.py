@@ -39,17 +39,16 @@
 #   * Jeremie Deray (artivis)
 
 import signal
-
 import tkinter
 
+from geometry_msgs.msg import Twist, Vector3
+import numpy
 import rclpy
 from rclpy.node import Node
-from geometry_msgs.msg import Twist, Vector3
-
-import numpy
 
 
 class MouseTeleop(Node):
+
     def __init__(self):
         super().__init__('mouse_teleop')
 

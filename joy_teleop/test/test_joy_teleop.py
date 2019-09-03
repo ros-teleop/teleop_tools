@@ -1,4 +1,4 @@
-# Copyright 2019 Apex.AI, Inc.
+# Copyright 2019 Canonical Ltd.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,8 +33,8 @@ testdata = glob.glob(
 # This test will automatically run for any *.test.py file in the examples folder and expect
 # it to pass
 @pytest.mark.parametrize('example_path', testdata, ids=[os.path.basename(d) for d in testdata])
-def test_all_key_teleop(example_path):
+def test_all_joy_teleop(example_path):
 
-    proc = ['launch_test', example_path]
+    proc = ['test', example_path]
 
     assert 0 == subprocess.run(args=proc).returncode

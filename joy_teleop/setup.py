@@ -36,7 +36,6 @@ setup(
         'console_scripts': [
             'joy_teleop = scripts.joy_teleop:main',
             'incrementer_server = scripts.incrementer_server:main',
-            'dummy = scripts.dummy:main',
         ],
     },
 )

@@ -16,6 +16,7 @@ import os
 import time
 import unittest
 
+from ament_index_python.packages import get_package_share_directory
 import launch
 import launch_ros
 import launch_ros.actions
@@ -24,8 +25,6 @@ import rclpy.context
 import rclpy.executors
 import sensor_msgs.msg
 import std_msgs.msg
-
-from ament_index_python.packages import get_package_share_directory
 
 
 def generate_test_description(ready_fn):

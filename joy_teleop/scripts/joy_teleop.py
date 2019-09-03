@@ -34,15 +34,13 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import importlib
-import rclpy
-import sensor_msgs.msg
-import time
 
-from rcl_interfaces.srv import ListParameters
+import rclpy
 from rclpy.action import ActionClient
 from rclpy.node import Node
 from rclpy.parameter import PARAMETER_SEPARATOR_STRING
 from rosidl_runtime_py import set_message_fields
+import sensor_msgs.msg
 
 
 class JoyTeleopException(Exception):
@@ -76,18 +74,18 @@ class JoyTeleop(Node):
 
         for i, config in self.config.items():
             if i in self.command_list:
-                self.get_logger().error("command {} was duplicated".format(i))
+                self.get_logger().error('command {} was duplicated'.format(i))
                 continue
 
-            type = config['type']
+            interface_group = config['type']
 
             self.add_command(i, config)
 
-            if type == 'topic':
+            if interface_group == 'topic':
                 self.register_topic(i, config)
-            elif type == 'action':
+            elif interface_group == 'action':
                 self.register_action(i, config)
-            elif type == 'service':
+            elif interface_group == 'service':
                 self.register_service(i, config)
             else:
                 self.get_logger().error("unknown type '{type}'"
@@ -105,14 +103,14 @@ class JoyTeleop(Node):
             pval = self.get_parameter(param_name).value
             self.insert_dict(self.config, param_name, pval)
 
-    def insert_dict(self, dict, key, value):
+    def insert_dict(self, dictionary, key, value):
         split = key.split(PARAMETER_SEPARATOR_STRING, 1)
         if len(split) > 1:
-            if not split[0] in dict:
-                dict[split[0]] = {}
-            self.insert_dict(dict[split[0]], split[1], value)
+            if not split[0] in dictionary:
+                dictionary[split[0]] = {}
+            self.insert_dict(dictionary[split[0]], split[1], value)
         else:
-            dict[key] = value
+            dictionary[key] = value
 
     def joy_callback(self, data):
         try:
@@ -120,7 +118,7 @@ class JoyTeleop(Node):
                 if self.match_command(c, data.buttons):
                     self.run_command(c, data)
         except JoyTeleopException as e:
-            self.get_logger().error("error while parsing joystick input: %s", str(e))
+            self.get_logger().error('error while parsing joystick input: %s', str(e))
         self.old_buttons = data.buttons
 
     def register_topic(self, name, command):
@@ -131,7 +129,7 @@ class JoyTeleop(Node):
             self.pubs[topic_name] = self.create_publisher(topic_type, topic_name, 1)
         except JoyTeleopException as e:
             self.get_logger().error(
-                "could not register topic for command {}: {}".format(name, str(e)))
+                'could not register topic for command {}: {}'.format(name, str(e)))
 
     def register_action(self, name, command):
         """Add an action client for a joystick command."""
@@ -145,14 +143,15 @@ class JoyTeleop(Node):
         else:
             if action_name not in self.offline_actions:
                 self.get_logger().warn(
-                    "action {} is not read yet".format(action_name))
+                    'action {} is not read yet'.format(action_name))
                 self.offline_actions.append(action_name)
 
     class AsyncServiceProxy(object):
+
         def __init__(self, node, service_name, service_type):
             self._service_client = node.create_client(service_type, service_name)
             if not self._service_client.wait_for_service(timeout_sec=1.0):
-                raise JoyTeleopException("Service {} is not available".format(service_name))
+                raise JoyTeleopException('Service {} is not available'.format(service_name))
 
         def __call__(self, request):
             self._service_client.call_async(request)
@@ -179,7 +178,7 @@ class JoyTeleop(Node):
         if len(buttons) == 0 or len(self.command_list[c]['buttons']) == 0 or \
            len(buttons) <= max(self.command_list[c]['buttons']):
             return False
-        return any([buttons[cmd_button] for cmd_button in self.command_list[c]['buttons']])
+        return any(buttons[cmd_button] for cmd_button in self.command_list[c]['buttons'])
 
     def add_command(self, name, command):
         """Add a command to the command list."""
@@ -202,8 +201,8 @@ class JoyTeleop(Node):
             self.run_topic(command, joy_state)
         elif cmd['type'] == 'action':
             if cmd['action_name'] in self.offline_actions:
-                self.get_logger().error("command {} was not played because the action "
-                                        "server was unavailable. Trying to reconnect..."
+                self.get_logger().error('command {} was not played because the action '
+                                        'server was unavailable. Trying to reconnect...'
                                         .format(cmd['action_name']))
                 self.register_action(command, self.command_list[command])
             else:
@@ -211,8 +210,8 @@ class JoyTeleop(Node):
                     self.run_action(command, joy_state)
         elif cmd['type'] == 'service':
             if cmd['service_name'] in self.offline_services:
-                self.get_logger().error("command {} was not played because the service "
-                                        "server was unavailable. Trying to reconnect..."
+                self.get_logger().error('command {} was not played because the service '
+                                        'server was unavailable. Trying to reconnect...'
                                         .format(cmd['service_name']))
                 self.register_service(command, self.command_list[command])
             else:
@@ -228,7 +227,7 @@ class JoyTeleop(Node):
         msg = self.get_interface_type(cmd['interface_type'], '.msg')()
 
         if 'message_value' in cmd:
-            if cmd['message_value'] != None:
+            if cmd['message_value'] is not None:
                 for target, param in cmd['message_value'].items():
                     self.set_member(msg, target, param['value'])
 
@@ -295,16 +294,16 @@ class JoyTeleop(Node):
     def get_interface_type(self, type_name, ext):
         if type_name not in self.message_types:
             try:
-                package, type, message = type_name.split('/')
+                package, interface, message = type_name.split('/')
                 mod = importlib.import_module(package + ext)
                 self.message_types[type_name] = getattr(mod, message)
             except ValueError:
-                raise JoyTeleopException("message type format error")
+                raise JoyTeleopException('message type format error')
             except ImportError:
-                raise JoyTeleopException("module {} could not be loaded".format(package))
+                raise JoyTeleopException('module {} could not be loaded'.format(package))
             except AttributeError:
                 raise JoyTeleopException(
-                    "message {} could not be loaded from module {}".format(package, message))
+                    'message {} could not be loaded from module {}'.format(package, message))
         return self.message_types[type_name]
 
     def update_actions(self, evt=None):

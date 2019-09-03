@@ -41,23 +41,23 @@
 
 import time
 
+from control_msgs.msg import JointTrajectoryControllerState as JTCS
 import rclpy
 from rclpy.action import ActionServer
 from rclpy.duration import Duration
 from rclpy.node import Node
-
-from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
-from control_msgs.msg import JointTrajectoryControllerState as JTCS
 from teleop_tools_msgs.action import Increment as TTIA
+from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 
 
 class IncrementerServer(Node):
+
     def __init__(self, controller_ns):
         super().__init__('incrementer_server')
 
         self._has_new_message = False
 
-        self._as = ActionServer(self, TTIA, "increment", self._as_cb)
+        self._as = ActionServer(self, TTIA, 'increment', self._as_cb)
 
         self._command_pub = self.create_publisher(JointTrajectory, 'command', 1)
 

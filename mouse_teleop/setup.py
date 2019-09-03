@@ -2,15 +2,16 @@ from setuptools import find_packages
 from setuptools import setup
 
 package_name = 'mouse_teleop'
+share_path = 'share/' + package_name
 
 setup(
     name=package_name,
     version='0.3.0',
     packages=find_packages(exclude=['test']),
     data_files=[
-        ('share/' + package_name, ['package.xml']),
-        ('share/' + package_name + '/config/', ['config/mouse_teleop.yaml']),
-        ('share/' + package_name + '/launch/', ['launch/mouse_teleop.launch.py']),
+        (share_path, ['package.xml']),
+        (share_path + '/config/', ['config/mouse_teleop.yaml']),
+        (share_path + '/launch/', ['launch/mouse_teleop.launch.py']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

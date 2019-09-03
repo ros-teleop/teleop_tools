@@ -2,14 +2,15 @@ from setuptools import find_packages
 from setuptools import setup
 
 package_name = 'key_teleop'
+share_path = 'share/' + package_name
 
 setup(
     name=package_name,
     version='0.3.0',
     packages=find_packages(exclude=['test']),
     data_files=[
-        ('share/' + package_name + '/', ['package.xml']),
-        ('share/' + package_name + '/config/', ['config/' + package_name + '.yaml']),
+        (share_path + '/', ['package.xml']),
+        (share_path + '/config/', ['config/' + package_name + '.yaml']),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

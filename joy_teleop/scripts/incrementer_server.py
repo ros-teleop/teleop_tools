@@ -63,8 +63,6 @@ class IncrementerServer(Node):
 
         self._state_sub = self.create_subscription(JTCS, 'state', self._state_cb, 1)
 
-        time.sleep(2)
-
         state = self._wait_for_new_message()
         self._value = state.actual.positions
         self._goal = JointTrajectory()

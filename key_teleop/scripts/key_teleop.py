@@ -39,19 +39,20 @@
 #   * Jeremie Deray (artivis)
 
 import curses
-import time
 
 # For 'q' keystroke exit
 import os
 import signal
+import time
 
+from geometry_msgs.msg import Twist
 import rclpy
 from rclpy.duration import Duration
 from rclpy.node import Node
-from geometry_msgs.msg import Twist
 
 
 class Velocity(object):
+
     def __init__(self, min_velocity, max_velocity, num_steps):
         assert min_velocity > 0 and max_velocity > 0 and num_steps > 0
         self._min = min_velocity
@@ -118,6 +119,7 @@ class TextWindow():
 
 
 class SimpleKeyTeleop(Node):
+
     def __init__(self, interface):
         super().__init__('key_teleop')
 

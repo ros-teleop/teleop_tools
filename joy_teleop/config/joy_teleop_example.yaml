@@ -1,115 +1,110 @@
-teleop:
-  walk:
-    type: topic
-    message_type: geometry_msgs/Twist
-    topic_name: cmd_vel
-    deadman_buttons: [4]
-    axis_mappings:
-      -
-        axis: 1
-        target: linear.x
-        scale: 0.5
-        offset: -0.03
-      -
-        axis: 0
-        target: angular.z
-        scale: 0.5
-      -
-        axis: 2
-        target: linear.y
-        scale: 0.3
-      -
-        button: 2
-        target: linear.z
-        scale: 3.0
+joy_teleop:
+  ros__parameters:
 
-  force_push:
-    type: topic
-    message_type: geometry_msgs/Wrench
-    topic_name: base_link_wrench
-    deadman_buttons: [5, 7]
-    axis_mappings:
-      -
-        axis: 3
-        target: force.x
-        scale: 40
-      -
-        axis: 2
-        target: force.y
-        scale: 40
+    walk:
+      type: topic
+      interface_type: geometry_msgs/msg/Twist
+      topic_name: cmd_vel
+      deadman_buttons: [4]
+      axis_mappings:
+        linear-x:
+          axis: 1
+          scale: 0.5
+          offset: -0.03
+        angular-z:
+          axis: 0
+          scale: 0.5
+        linear-y:
+          axis: 2
+          scale: 0.3
+        linear-z:
+          button: 2
+          scale: 3.0
 
-  stop_everything:
-    type: action
-    action_name: stop_joints
-    buttons: [4, 5, 6, 7]
+    force_push:
+      type: topic
+      interface_type: geometry_msgs/msg/Wrench
+      topic_name: base_link_wrench
+      deadman_buttons: [5, 7]
+      axis_mappings:
+        force-x:
+          axis: 3
+          scale: 40
+        force-y:
+          axis: 2
+          scale: 40
 
-  torso_up:
-    type: action
-    action_name: /torso_controller/increment
-    action_goal:
-      increment_by: [0.05]
-    buttons: [4]
+    stop:
+      type: topic
+      interface_type: geometry_msgs/msg/Twist
+      topic_name: cmd_vel
+      deadman_buttons: [0, 2]
+      message_value:
+        linear-x:
+          value: 0.0
+        angular-z:
+          value: 0.0
+        linear-y:
+          value: 0.0
 
-  torso_down:
-    type: action
-    action_name: /torso_controller/increment
-    action_goal:
-      increment_by: [-0.05]
-    buttons: [6]
+    hello:
+      type: topic
+      interface_type: std_msgs/msg/String
+      topic_name: chatter
+      deadman_buttons: [2]
+      message_value:
+        data:
+          value: 'Hello'
 
-  stop:
-    type: topic
-    message_type: geometry_msgs/Twist
-    topic_name: cmd_vel
-    deadman_buttons: [0, 2]
-    message_value:
-      -
-        target: linear.x
-        value: 0.0
-      -
-        target: angular.z
-        value: 0.0
-      -
-        target: linear.y
-        value: 0.0
+    array:
+      type: topic
+      interface_type: std_msgs/msg/UInt8MultiArray
+      topic_name: bytes
+      deadman_buttons: [5]
+      message_value:
+        data:
+          value: [1,3,3,7]
 
-  hello:
-    type: topic
-    message_type: std_msgs/String
-    topic_name: chatter
-    deadman_buttons: [1]
-    message_value:
-      -
-        target: data
-        value: 'Hello'
+    array2:
+      type: topic
+      interface_type: std_msgs/msg/UInt8MultiArray
+      topic_name: bytes
+      deadman_buttons: [3]
+      message_value:
+        data:
+          value:
+            - 4
+            - 2
 
-  array:
-    type: topic
-    message_type: std_msgs/UInt8MultiArray
-    topic_name: bytes
-    deadman_buttons: [5]
-    message_value:
-      -
-        target: data
-        value: [1,3,3,7]
+    torso_up:
+      type: action
+      interface_type: teleop_tools_msgs/action/Increment
+      action_name: torso_controller/increment
+      action_goal:
+        increment_by: [0.05]
+      buttons: [4]
 
-  array2:
-    type: topic
-    message_type: std_msgs/UInt8MultiArray
-    topic_name: bytes
-    deadman_buttons: [3]
-    message_value:
-      -
-        target: data
-        value:
-          - 4
-          - 2
+    torso_down:
+      type: action
+      interface_type: teleop_tools_msgs/action/Increment
+      action_name: torso_controller/increment
+      action_goal:
+        increment_by: [-0.05]
+      buttons: [6]
 
-  add_two_ints:
-    type: service
-    service_name: /add_two_ints
-    service_request:
-      a: 11
-      b: 31
-    service_persistent: False # False by default
-    buttons: [10]
+    fibonacci:
+      type: action
+      interface_type: action_tutorials/action/Fibonacci
+      action_name: fibonacci
+      action_goal:
+        order: 5
+      buttons: [4, 5, 6, 7]
+
+    add_two_ints:
+      type: service
+      interface_type: example_interfaces/srv/AddTwoInts
+      service_name: add_two_ints
+      service_request:
+        a: 11
+        b: 31
+      buttons: [10]

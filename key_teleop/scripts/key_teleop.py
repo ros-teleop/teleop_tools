@@ -2,16 +2,54 @@
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2013 PAL Robotics SL.
-# Released under the BSD License.
+# All rights reserved.
+#
+# Software License Agreement (BSD License 2.0)
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions
+# are met:
+#
+#  * Redistributions of source code must retain the above copyright
+#    notice, this list of conditions and the following disclaimer.
+#  * Redistributions in binary form must reproduce the above
+#    copyright notice, this list of conditions and the following
+#    disclaimer in the documentation and/or other materials provided
+#    with the distribution.
+#  * Neither the name of PAL Robotics SL. nor the names of its
+#    contributors may be used to endorse or promote products derived
+#    from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+# "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+# LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
+# FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE
+# COPYRIGHT OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+# INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+# BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER
+# CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
+# LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN
+# ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+# POSSIBILITY OF SUCH DAMAGE.
+#
 #
 # Authors:
 #   * Siegfried-A. Gevatter
+#   * Jeremie Deray (artivis)
 
 import curses
-import math
 
-import rospy
+# For 'q' keystroke exit
+import os
+import signal
+import time
+
 from geometry_msgs.msg import Twist
+import rclpy
+from rclpy.duration import Duration
+from rclpy.node import Node
+
 
 class Velocity(object):
 
@@ -28,7 +66,9 @@ class Velocity(object):
 
     def __call__(self, value, step):
         """
-        Takes a value in the range [0, 1] and the step and returns the
+        Form a velocity.
+
+        Take a value in the range [0, 1] and the step and returns the
         velocity (usually m/s or rad/s).
         """
         if step == 0:
@@ -37,6 +77,7 @@ class Velocity(object):
         assert step > 0 and step <= self._num_steps
         max_value = self._min + self._step_incr * (step - 1)
         return value * max_value
+
 
 class TextWindow():
 
@@ -60,13 +101,14 @@ class TextWindow():
 
     def write_line(self, lineno, message):
         if lineno < 0 or lineno >= self._num_lines:
-            raise ValueError, 'lineno out of bounds'
+            raise ValueError('lineno out of bounds')
         height, width = self._screen.getmaxyx()
         y = (height / self._num_lines) * lineno
         x = 10
         for text in message.split('\n'):
             text = text.ljust(width)
-            self._screen.addstr(y, x, text)
+            # TODO(artivis) Why are those floats ??
+            self._screen.addstr(int(y), int(x), text)
             y += 1
 
     def refresh(self):
@@ -75,129 +117,32 @@ class TextWindow():
     def beep(self):
         curses.flash()
 
-class KeyTeleop():
 
-    _interface = None
-
-    _linear = None
-    _angular = None
+class SimpleKeyTeleop(Node):
 
     def __init__(self, interface):
+        super().__init__('key_teleop')
+
         self._interface = interface
-        self._pub_cmd = rospy.Publisher('key_vel', Twist)
+        self._pub_cmd = self.create_publisher(Twist, 'key_vel')
 
-        self._hz = rospy.get_param('~hz', 10)
+        self._hz = self.declare_parameter('hz', 10).value
 
-        self._num_steps = rospy.get_param('~turbo/steps', 4)
-
-        forward_min = rospy.get_param('~turbo/linear_forward_min', 0.5)
-        forward_max = rospy.get_param('~turbo/linear_forward_max', 1.0)
-        self._forward = Velocity(forward_min, forward_max, self._num_steps)
-
-        backward_min = rospy.get_param('~turbo/linear_backward_min', 0.25)
-        backward_max = rospy.get_param('~turbo/linear_backward_max', 0.5)
-        self._backward = Velocity(backward_min, backward_max, self._num_steps)
-
-        angular_min = rospy.get_param('~turbo/angular_min', 0.7)
-        angular_max = rospy.get_param('~turbo/angular_max', 1.2)
-        self._rotation = Velocity(angular_min, angular_max, self._num_steps)
-
-    def run(self):
-        self._linear = 0
-        self._angular = 0
-
-        rate = rospy.Rate(self._hz)
-        while True:
-            keycode = self._interface.read_key()
-            if keycode:
-                if self._key_pressed(keycode):
-                    self._publish()
-            else:
-                self._publish()
-                rate.sleep()
-
-    def _get_twist(self, linear, angular):
-        twist = Twist()
-        if linear >= 0:
-            twist.linear.x = self._forward(1.0, linear)
-        else:
-            twist.linear.x = self._backward(-1.0, -linear)
-        twist.angular.z = self._rotation(math.copysign(1, angular), abs(angular))
-        return twist
-
-    def _key_pressed(self, keycode):
-        movement_bindings = {
-            curses.KEY_UP:    ( 1,  0),
-            curses.KEY_DOWN:  (-1,  0),
-            curses.KEY_LEFT:  ( 0,  1),
-            curses.KEY_RIGHT: ( 0, -1),
-        }
-        speed_bindings = {
-            ord(' '): (0, 0),
-        }
-        if keycode in movement_bindings:
-            acc = movement_bindings[keycode]
-            ok = False
-            if acc[0]:
-                linear = self._linear + acc[0]
-                if abs(linear) <= self._num_steps:
-                    self._linear = linear
-                    ok = True
-            if acc[1]:
-                angular = self._angular + acc[1]
-                if abs(angular) <= self._num_steps:
-                    self._angular = angular
-                    ok = True
-            if not ok:
-                self._interface.beep()
-        elif keycode in speed_bindings:
-            acc = speed_bindings[keycode]
-            # Note: bounds aren't enforced here!
-            if acc[0] is not None:
-                self._linear = acc[0]
-            if acc[1] is not None:
-                self._angular = acc[1]
-
-        elif keycode == ord('q'):
-            rospy.signal_shutdown('Bye')
-        else:
-            return False
-
-        return True
-
-    def _publish(self):
-        self._interface.clear()
-        self._interface.write_line(2, 'Linear: %d, Angular: %d' % (self._linear, self._angular))
-        self._interface.write_line(5, 'Use arrow keys to move, space to stop, q to exit.')
-        self._interface.refresh()
-
-        twist = self._get_twist(self._linear, self._angular)
-        self._pub_cmd.publish(twist)
-
-
-class SimpleKeyTeleop():
-    def __init__(self, interface):
-        self._interface = interface
-        self._pub_cmd = rospy.Publisher('key_vel', Twist)
-
-        self._hz = rospy.get_param('~hz', 10)
-
-        self._forward_rate = rospy.get_param('~forward_rate', 0.8)
-        self._backward_rate = rospy.get_param('~backward_rate', 0.5)
-        self._rotation_rate = rospy.get_param('~rotation_rate', 1.0)
+        self._forward_rate = self.declare_parameter('forward_rate', 0.8).value
+        self._backward_rate = self.declare_parameter('backward_rate', 0.5).value
+        self._rotation_rate = self.declare_parameter('rotation_rate', 1.0).value
         self._last_pressed = {}
         self._angular = 0
         self._linear = 0
 
     movement_bindings = {
-        curses.KEY_UP:    ( 1,  0),
+        curses.KEY_UP:    (1,  0),
         curses.KEY_DOWN:  (-1,  0),
-        curses.KEY_LEFT:  ( 0,  1),
-        curses.KEY_RIGHT: ( 0, -1),
+        curses.KEY_LEFT:  (0,  1),
+        curses.KEY_RIGHT: (0, -1),
     }
 
     def run(self):
-        rate = rospy.Rate(self._hz)
         self._running = True
         while self._running:
             while True:
@@ -207,7 +152,8 @@ class SimpleKeyTeleop():
                 self._key_pressed(keycode)
             self._set_velocity()
             self._publish()
-            rate.sleep()
+            # TODO(artivis) use Rate once available
+            time.sleep(1.0/self._hz)
 
     def _get_twist(self, linear, angular):
         twist = Twist()
@@ -216,10 +162,10 @@ class SimpleKeyTeleop():
         return twist
 
     def _set_velocity(self):
-        now = rospy.get_time()
+        now = self.get_clock().now()
         keys = []
         for a in self._last_pressed:
-            if now - self._last_pressed[a] < 0.4:
+            if now - self._last_pressed[a] < Duration(seconds=0.4):
                 keys.append(a)
         linear = 0.0
         angular = 0.0
@@ -238,9 +184,10 @@ class SimpleKeyTeleop():
     def _key_pressed(self, keycode):
         if keycode == ord('q'):
             self._running = False
-            rospy.signal_shutdown('Bye')
+            # TODO(artivis) no rclpy.signal_shutdown ?
+            os.kill(os.getpid(), signal.SIGINT)
         elif keycode in self.movement_bindings:
-            self._last_pressed[keycode] = rospy.get_time()
+            self._last_pressed[keycode] = self.get_clock().now()
 
     def _publish(self):
         self._interface.clear()
@@ -252,13 +199,22 @@ class SimpleKeyTeleop():
         self._pub_cmd.publish(twist)
 
 
-def main(stdscr):
-    rospy.init_node('key_teleop')
+def execute(stdscr):
+    rclpy.init()
+
     app = SimpleKeyTeleop(TextWindow(stdscr))
     app.run()
 
-if __name__ == '__main__':
+    app.destroy_node()
+    rclpy.shutdown()
+
+
+def main():
     try:
-        curses.wrapper(main)
-    except rospy.ROSInterruptException:
+        curses.wrapper(execute)
+    except KeyboardInterrupt:
         pass
+
+
+if __name__ == '__main__':
+    main()

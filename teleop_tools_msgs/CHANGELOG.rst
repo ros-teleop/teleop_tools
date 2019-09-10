@@ -2,6 +2,11 @@
 Changelog for package teleop_tools_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* ROS2 port (`#35 <https://github.com/ros-teleop/teleop_tools/issues/35>`_)
+* Contributors: Jeremie Deray
+
 0.3.0 (2019-01-03)
 ------------------
 

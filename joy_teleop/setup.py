@@ -12,6 +12,7 @@ setup(
         (share_path, ['package.xml']),
         (share_path + '/config/', ['config/joy_teleop_example.yaml']),
         (share_path + '/launch/', ['launch/example.launch.py']),
+        ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

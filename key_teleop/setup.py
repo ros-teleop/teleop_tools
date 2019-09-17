@@ -11,6 +11,7 @@ setup(
     data_files=[
         (share_path + '/', ['package.xml']),
         (share_path + '/config/', ['config/' + package_name + '.yaml']),
+        ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

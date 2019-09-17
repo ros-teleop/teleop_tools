@@ -10,8 +10,9 @@ setup(
     packages=find_packages(exclude=['test']),
     data_files=[
         (share_path, ['package.xml']),
-        (share_path + '/config/', ['config/mouse_teleop.yaml']),
+        (share_path + '/config/', ['config/' + package_name + '.yaml']),
         (share_path + '/launch/', ['launch/mouse_teleop.launch.py']),
+        ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

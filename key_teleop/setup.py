@@ -9,7 +9,7 @@ setup(
     version='0.3.0',
     packages=find_packages(exclude=['test']),
     data_files=[
-        (share_path + '/', ['package.xml']),
+        (share_path, ['package.xml']),
         (share_path + '/config/', ['config/' + package_name + '.yaml']),
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
     ],

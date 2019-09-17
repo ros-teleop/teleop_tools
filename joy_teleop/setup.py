@@ -9,7 +9,7 @@ setup(
     version='0.3.0',
     packages=find_packages(exclude=['test']),
     data_files=[
-        (share_path, ['package.xml']),
+        (share_path + '/', ['package.xml']),
         (share_path + '/config/', ['config/joy_teleop_example.yaml']),
         (share_path + '/launch/', ['launch/example.launch.py']),
         ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
@@ -36,8 +36,8 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'joy_teleop = scripts.joy_teleop:main',
-            'incrementer_server = scripts.incrementer_server:main',
+            'joy_teleop = joy_teleop.joy_teleop:main',
+            'incrementer_server = joy_teleop.incrementer_server:main',
         ],
     },
 )

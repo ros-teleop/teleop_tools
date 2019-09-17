@@ -1,18 +1,22 @@
+import os
+
 from setuptools import find_packages
 from setuptools import setup
 
+
 package_name = 'joy_teleop'
 share_path = 'share/' + package_name
+
 
 setup(
     name=package_name,
     version='0.3.0',
     packages=find_packages(exclude=['test']),
     data_files=[
-        (share_path + '/', ['package.xml']),
-        (share_path + '/config/', ['config/joy_teleop_example.yaml']),
-        (share_path + '/launch/', ['launch/example.launch.py']),
-        ('share/ament_index/resource_index/packages', ['resource/' + package_name]),
+        (share_path, ['package.xml']),
+        (os.path.join(share_path, 'config'), [os.path.join('config', 'joy_teleop_example.yaml')]),
+        (os.path.join(share_path, 'launch'), [os.path.join('launch', 'example.launch.py')]),
+        (os.path.join('share', 'ament_index', 'resource_index', 'packages'), [os.path.join('resource', package_name)]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

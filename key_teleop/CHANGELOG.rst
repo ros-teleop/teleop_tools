@@ -2,6 +2,17 @@
 Changelog for package key_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix install rules and dashing changes (`#38 <https://github.com/ros-teleop/teleop_tools/issues/38>`_)
+  * fix ament indexing
+  * fix package resource files
+  * add tk depenndency
+  * add check for param index-ability
+  * data files are now package agnostic
+  Signed-off-by: Ted Kern <ted.kern@canonical.com>
+* Contributors: Ted Kern
+
 1.0.0 (2019-09-10)
 ------------------
 * ROS2 port (`#35 <https://github.com/ros-teleop/teleop_tools/issues/35>`_)

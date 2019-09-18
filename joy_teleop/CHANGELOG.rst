@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.0.1 (2019-09-18)
+------------------
 * Fix install rules and dashing changes (`#38 <https://github.com/ros-teleop/teleop_tools/issues/38>`_)
   * fix ament indexing
   * fix package resource files

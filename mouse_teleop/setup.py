@@ -1,8 +1,12 @@
+import os
+
 from setuptools import find_packages
 from setuptools import setup
 
+
 package_name = 'mouse_teleop'
-share_path = 'share/' + package_name
+share_path = os.path.join('share', package_name)
+
 
 setup(
     name=package_name,
@@ -10,8 +14,9 @@ setup(
     packages=find_packages(exclude=['test']),
     data_files=[
         (share_path, ['package.xml']),
-        (share_path + '/config/', ['config/mouse_teleop.yaml']),
-        (share_path + '/launch/', ['launch/mouse_teleop.launch.py']),
+        (os.path.join(share_path, 'config'), [os.path.join('config', f'{package_name}.yaml')]),
+        (os.path.join(share_path, 'launch'), [os.path.join('launch', f'{package_name}.launch.py')]),
+        (os.path.join('share', 'ament_index', 'resource_index', 'packages'), [os.path.join('resource', package_name)]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,
@@ -35,7 +40,7 @@ setup(
     tests_require=['pytest'],
     entry_points={
         'console_scripts': [
-            'mouse_teleop = scripts.mouse_teleop:main',
+            'mouse_teleop = mouse_teleop.mouse_teleop:main',
         ],
     },
 )

@@ -77,19 +77,22 @@ class JoyTeleop(Node):
                 self.get_logger().error('command {} was duplicated'.format(i))
                 continue
 
-            interface_group = config['type']
+            try:
+                interface_group = config['type']
 
-            self.add_command(i, config)
+                self.add_command(i, config)
 
-            if interface_group == 'topic':
-                self.register_topic(i, config)
-            elif interface_group == 'action':
-                self.register_action(i, config)
-            elif interface_group == 'service':
-                self.register_service(i, config)
-            else:
-                self.get_logger().error("unknown type '{type}'"
-                                        "for command '{i}'".format_map(locals()))
+                if interface_group == 'topic':
+                    self.register_topic(i, config)
+                elif interface_group == 'action':
+                    self.register_action(i, config)
+                elif interface_group == 'service':
+                    self.register_service(i, config)
+                else:
+                    self.get_logger().error("unknown type '{type}'"
+                                            "for command '{i}'".format_map(locals()))
+            except TypeError:
+                self.get_logger().warn(f"parameter {i} is not a dict")
 
         # Don't subscribe until everything has been initialized.
         self._subscription = self.create_subscription(

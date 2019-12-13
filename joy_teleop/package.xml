@@ -12,6 +12,7 @@
 
   <exec_depend>control_msgs</exec_depend>
   <exec_depend>rclpy</exec_depend>
+  <exec_depend>action_tutorials_interfaces</exec_depend>
   <exec_depend>sensor_msgs</exec_depend>
   <exec_depend>teleop_tools_msgs</exec_depend>
   <exec_depend>trajectory_msgs</exec_depend>

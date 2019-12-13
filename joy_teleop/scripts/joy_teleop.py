@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import absolute_import
 import importlib
 
 import rospy
@@ -10,6 +11,7 @@ import rostopic
 import rosservice
 from threading import Thread
 from rosservice import ROSServiceException
+import six
 
 class JoyTeleopException(Exception):
     pass
@@ -269,7 +271,7 @@ class JoyTeleop:
         return self.service_types[service_name]
 
     def update_actions(self, evt=None):
-        for name, cmd in self.command_list.iteritems():
+        for name, cmd in six.iteritems(self.command_list):
             if cmd['type'] != 'action':
                 continue
             if cmd['action_name'] in self.offline_actions:

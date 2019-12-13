@@ -317,20 +317,19 @@ class JoyTeleop(Node):
                 self.register_action(name, cmd)
 
 
-def main():
+def main(args=None):
+    rclpy.init(args=args)
+    node = JoyTeleop()
+
     try:
-        rclpy.init()
-
-        node = JoyTeleop()
-
         rclpy.spin(node)
-
-        node.destroy_node()
-        rclpy.shutdown()
-    except JoyTeleopException:
-        pass
+    except JoyTeleopException as e:
+        node.get_logger().error(e.message)
     except KeyboardInterrupt:
         pass
+
+    node.destroy_node()
+    rclpy.shutdown()
 
 
 if __name__ == '__main__':

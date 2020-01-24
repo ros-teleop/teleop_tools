@@ -179,14 +179,14 @@ class JoyTeleop(Node):
 
     def match_button_command(self, c, buttons):
         """Find a command matching a joystick configuration."""
-        if len(buttons) == 0 or len(self.command_list[c]['buttons']) == 0 or \
+        if len(buttons) == 0 or not 'buttons' in self.command_list[c] or len(self.command_list[c]['buttons']) == 0 or \
            len(buttons) <= max(self.command_list[c]['buttons']):
             return False
         return any(buttons[cmd_button] for cmd_button in self.command_list[c]['buttons'])
 
     def match_axis_command(self, c, axes):
         """Find a command matching a joystick configuration."""
-        if len(axes) == 0 or len(self.command_list[c]['axes']) == 0 or \
+        if len(axes) == 0 or not 'axes' in self.command_list[c] or len(self.command_list[c]['axes']) == 0 or \
            len(axes) <= max(int(cmd_axis) for cmd_axis, value in self.command_list[c]['axes'].items()):
             return False
 

@@ -37,6 +37,8 @@ class JoyTeleop:
 
         self.old_buttons = []
 
+        self.deadman_list = []
+
         teleop_cfg = rospy.get_param("teleop")
 
         for i in teleop_cfg:
@@ -65,6 +67,12 @@ class JoyTeleop:
             for c in self.command_list:
                 if self.match_command(c, data.buttons):
                     self.run_command(c, data)
+                else:
+                    if (c in self.deadman_list):
+                        self.run_command(c, None)
+                        self.deadman_list.remove(c)
+                        rospy.loginfo("Deadman %s", c)
+
         except JoyTeleopException as e:
             rospy.logerr("error while parsing joystick input: %s", str(e))
         self.old_buttons = data.buttons
@@ -186,29 +194,36 @@ class JoyTeleop:
         cmd = self.command_list[c]
         msg = self.get_message_type(cmd['message_type'])()
 
-        if 'message_value' in cmd:
-            for param in cmd['message_value']:
-                self.set_member(msg, param['target'], param['value'])
+        if joy_state is not None: # when None deadman kicks in, send a default (zeroed) message
 
-        else:
-            for mapping in cmd['axis_mappings']:
-                if 'axis' in mapping:
-                    if len(joy_state.axes) > mapping['axis']:
-                        val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
-                    else:
-                        rospy.logerr('Joystick has only {} axes (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.axes), mapping['axis']))
-                        val = 0.0
-                elif 'button' in mapping:
-                    if len(joy_state.buttons) > mapping['button']:
-                        val = joy_state.buttons[mapping['button']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
-                    else:
-                        rospy.logerr('Joystick has only {} buttons (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.buttons), mapping['button']))
-                        val = 0.0
-                else:
-                    rospy.logerr('No Supported axis_mappings type found in: {}'.format(mapping))
-                    val = 0.0
+            # setup a deadman pending, if this topic type had defined deadman_buttons (instead of just buttons)
+            if len(cmd['deadman_buttons']) > 0:
+                if (c not in self.deadman_list):
+                    self.deadman_list.append(c)
 
-                self.set_member(msg, mapping['target'], val)
+            if 'message_value' in cmd:
+                for param in cmd['message_value']:
+                    self.set_member(msg, param['target'], param['value'])
+
+            else:
+                for mapping in cmd['axis_mappings']:
+                    if 'axis' in mapping:
+                        if len(joy_state.axes) > mapping['axis']:
+                            val = joy_state.axes[mapping['axis']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
+                        else:
+                            rospy.logerr('Joystick has only {} axes (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.axes), mapping['axis']))
+                            val = 0.0
+                    elif 'button' in mapping:
+                        if len(joy_state.buttons) > mapping['button']:
+                            val = joy_state.buttons[mapping['button']] * mapping.get('scale', 1.0) + mapping.get('offset', 0.0)
+                        else:
+                            rospy.logerr('Joystick has only {} buttons (indexed from 0), but #{} was referenced in config.'.format(len(joy_state.buttons), mapping['button']))
+                            val = 0.0
+                    else:
+                        rospy.logerr('No Supported axis_mappings type found in: {}'.format(mapping))
+                        val = 0.0
+
+                    self.set_member(msg, mapping['target'], val)
 
         # If there is a stamp field, fill it with rospy.Time.now()
         if hasattr(msg, 'header'):

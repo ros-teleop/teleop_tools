@@ -137,10 +137,11 @@ class JoyTeleop(Node):
     def register_action(self, name, command):
         """Add an action client for a joystick command."""
         action_name = command['action_name']
-        action_type = self.get_interface_type(command['interface_type'], '.action')
-        self.al_clients[action_name] = ActionClient(self, action_type, action_name)
+        if action_name not in self.al_clients:
+            action_type = self.get_interface_type(command['interface_type'], '.action')
+            self.al_clients[action_name] = ActionClient(self, action_type, action_name)
 
-        if self.al_clients[action_name].wait_for_server(timeout_sec=0.5):
+        if self.al_clients[action_name].server_is_ready():
             if action_name in self.offline_actions:
                 self.offline_actions.remove(action_name)
         else:

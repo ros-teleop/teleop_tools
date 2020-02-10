@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.3.1 (2020-02-10)
+------------------
 * fix python3 compatibility (`#42 <https://github.com/ros-teleop/teleop_tools/issues/42>`_)
 * Contributors: Yutaka Kondo
 

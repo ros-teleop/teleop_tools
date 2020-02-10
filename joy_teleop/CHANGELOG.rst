@@ -2,6 +2,13 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Avoid halting on action server status checks. (`#48 <https://github.com/ros-teleop/teleop_tools/issues/48>`_)
+* Depend action_tutorials_interfaces (`#44 <https://github.com/ros-teleop/teleop_tools/issues/44>`_)
+* log JoyTeleopException (`#41 <https://github.com/ros-teleop/teleop_tools/issues/41>`_)
+* Contributors: Michel Hidalgo, Yutaka Kondo
+
 1.0.1 (2019-09-18)
 ------------------
 * Fix install rules and dashing changes (`#38 <https://github.com/ros-teleop/teleop_tools/issues/38>`_)

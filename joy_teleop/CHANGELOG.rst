@@ -2,6 +2,11 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* fix python3 compatibility (`#42 <https://github.com/ros-teleop/teleop_tools/issues/42>`_)
+* Contributors: Yutaka Kondo
+
 0.3.0 (2019-01-03)
 ------------------
 * Fill in the timestamp of outgoing messages, if applicable.

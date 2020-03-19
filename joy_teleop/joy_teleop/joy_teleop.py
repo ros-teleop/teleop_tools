@@ -59,7 +59,6 @@ class JoyTeleop(Node):
         super().__init__('joy_teleop', allow_undeclared_parameters=True,
                          automatically_declare_parameters_from_overrides=True)
 
-        self.config = {}
         self.pubs = {}
         self.action_clients = {}
         self.srv_clients = {}
@@ -70,9 +69,9 @@ class JoyTeleop(Node):
 
         self.old_buttons = []
 
-        self.retrieve_config()
+        configs = self.retrieve_config()
 
-        for i, config in self.config.items():
+        for i, config in configs.items():
             if i in self.command_list:
                 self.get_logger().error('command {} was duplicated'.format(i))
                 continue
@@ -102,9 +101,11 @@ class JoyTeleop(Node):
         self._timer = self.create_timer(2.0, self.update_actions)
 
     def retrieve_config(self):
+        config = {}
         for param_name in sorted(list(self._parameters.keys())):
             pval = self.get_parameter(param_name).value
-            self.insert_dict(self.config, param_name, pval)
+            self.insert_dict(config, param_name, pval)
+        return config
 
     def insert_dict(self, dictionary, key, value):
         split = key.split(PARAMETER_SEPARATOR_STRING, 1)

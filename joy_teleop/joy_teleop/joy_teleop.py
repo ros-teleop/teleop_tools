@@ -61,7 +61,7 @@ class JoyTeleop(Node):
 
         self.config = {}
         self.pubs = {}
-        self.al_clients = {}
+        self.action_clients = {}
         self.srv_clients = {}
         self.message_types = {}
         self.command_list = {}
@@ -137,11 +137,11 @@ class JoyTeleop(Node):
     def register_action(self, name, command):
         """Add an action client for a joystick command."""
         action_name = command['action_name']
-        if action_name not in self.al_clients:
+        if action_name not in self.action_clients:
             action_type = self.get_interface_type(command['interface_type'], '.action')
-            self.al_clients[action_name] = ActionClient(self, action_type, action_name)
+            self.action_clients[action_name] = ActionClient(self, action_type, action_name)
 
-        if self.al_clients[action_name].server_is_ready():
+        if self.action_clients[action_name].server_is_ready():
             if action_name in self.offline_actions:
                 self.offline_actions.remove(action_name)
         else:
@@ -293,7 +293,7 @@ class JoyTeleop(Node):
             set_message_fields(goal, {target: value})
 
         # No need to wait
-        self.al_clients[cmd['action_name']].send_goal_async(goal)
+        self.action_clients[cmd['action_name']].send_goal_async(goal)
 
     def run_service(self, c, joy_state):
         cmd = self.command_list[c]

@@ -69,12 +69,10 @@ class JoyTeleop(Node):
 
         self.old_buttons = []
 
-        configs = self.retrieve_config()
-
-        for i, config in configs.items():
+        for i, config in self.retrieve_config().items():
             if i in self.command_list:
                 self.get_logger().error('command {} was duplicated'.format(i))
-                continue
+                raise JoyTeleopException('command {} was duplicated'.format(i))
 
             try:
                 interface_group = config['type']
@@ -90,8 +88,13 @@ class JoyTeleop(Node):
                 else:
                     self.get_logger().error("unknown type '{type}'"
                                             "for command '{i}'".format_map(locals()))
+                    raise JoyTeleopException("unknown type '{type}'"
+                                             "for command '{i}'".format_map(locals()))
+
             except TypeError:
-                self.get_logger().warn(f"parameter {i} is not a dict")
+                # This can happen on parameters we don't control, like
+                # 'use_sim_time'.  Just ignore it with a warning for the user.
+                self.get_logger().warn('parameter {} is not a dict'.format(i))
 
         # Don't subscribe until everything has been initialized.
         self._subscription = self.create_subscription(

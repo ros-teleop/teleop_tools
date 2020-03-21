@@ -148,7 +148,7 @@ class JoyTeleop(Node):
         else:
             if action_name not in self.offline_actions:
                 self.get_logger().warn(
-                    'action {} is not read yet'.format(action_name))
+                    'action {} is not ready yet'.format(action_name))
                 self.offline_actions.append(action_name)
 
     class AsyncServiceProxy(object):

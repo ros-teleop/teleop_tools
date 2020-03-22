@@ -1,4 +1,3 @@
-#! /usr/bin/env python
 # -*- coding: utf-8 -*-
 #
 # Copyright (c) 2019 PAL Robotics SL.
@@ -47,6 +46,293 @@ class JoyTeleopException(Exception):
     pass
 
 
+def get_interface_type(type_name, interface_type):
+    split = type_name.split('/')
+    if len(split) != 3:
+        raise JoyTeleopException("Invalid type_name '{}'".format(type_name))
+    package = split[0]
+    interface = split[1]
+    message = split[2]
+    if interface != interface_type:
+        raise JoyTeleopException("Cannot use interface of type '{}' for an '{}'"
+                                 .format(interface, interface_type))
+
+    mod = importlib.import_module(package + '.' + interface_type)
+    return getattr(mod, message)
+
+
+def set_member(msg, member, value):
+    ml = member.split('-')
+    if len(ml) < 1:
+        return
+    target = msg
+    for i in ml[:-1]:
+        target = getattr(target, i)
+    setattr(target, ml[-1], value)
+
+
+class JoyTeleopCommand:
+
+    def __init__(self, name, config, button_name, axes_name):
+        self.buttons = []
+        if button_name in config:
+            self.buttons = config[button_name]
+        self.axes = []
+        if axes_name in config:
+            self.axes = config[axes_name]
+
+        if len(self.buttons) == 0 and len(self.axes) == 0:
+            raise JoyTeleopException("No buttons or axes configured for command '{}'".format(name))
+
+        # Used to short-circuit the run command if there aren't enough buttons in the message.
+        self.min_button = None
+        if len(self.buttons) > 0:
+            self.min_button = min(self.buttons)
+        self.min_axis = None
+        if len(self.axes) > 0:
+            self.min_axis = min(self.axes)
+
+        # This can be used to "debounce" the message; if there are multiple presses of the buttons
+        # or axes, the command may only activate on the first one until it toggles again.  But this
+        # is a command-specific behavior, the base class only provides the mechanism.
+        self.active = False
+
+    def update_active_from_buttons_and_axes(self, joy_state):
+        self.active = False
+
+        if (self.min_button is not None and len(joy_state.buttons) <= self.min_button) and \
+           (self.min_axis is not None and len(joy_state.axes) <= self.min_axis):
+            # Not enough buttons or axes, so it can't possibly be a message for this command.
+            return
+
+        for button in self.buttons:
+            try:
+                self.active |= joy_state.buttons[button] == 1
+            except IndexError:
+                # An index error can occur if this command is configured for multiple buttons
+                # like (0, 10), but the length of the joystick buttons is only 1.  Ignore these.
+                pass
+
+        for axis in self.axes:
+            try:
+                self.active |= joy_state.axes[axis] == 1.0
+            except IndexError:
+                # An index error can occur if this command is configured for multiple buttons
+                # like (0, 10), but the length of the joystick buttons is only 1.  Ignore these.
+                pass
+
+
+class JoyTeleopTopicCommand(JoyTeleopCommand):
+
+    def __init__(self, name, config, node):
+        super().__init__(name, config, 'deadman_buttons', 'deadman_axes')
+
+        self.name = name
+
+        self.topic_type = get_interface_type(config['interface_type'], 'msg')
+
+        # A 'message_value' is a fixed message that is sent in response to an activation.  It is
+        # mutually exclusive with an 'axis_mapping'.
+        self.msg_value = None
+        if 'message_value' in config:
+            msg_config = config['message_value']
+
+            # Construct the fixed message and try to fill it in.  This message will be reused
+            # during runtime, and has the side benefit of giving the user early feedback if the
+            # config can't work.
+            self.msg_value = self.topic_type()
+            for target, param in msg_config.items():
+                set_member(self.msg_value, target, param['value'])
+
+        # An 'axis_mapping' takes data from one part of the message and scales and offsets it to
+        # publish if an activation happens.  This is typically used to take joystick analog data
+        # and republish it as a cmd_vel.  It is mutually exclusive with a 'message_value'.
+        self.axis_mappings = None
+        if 'axis_mappings' in config:
+            self.axis_mappings = config['axis_mappings']
+            # Now check that the mappings have all of the required configuration.
+            for mapping, values in self.axis_mappings.items():
+                if 'axis' not in values and 'button' not in values:
+                    raise JoyTeleopException("Axis mapping for '{}' must have an axis or button"
+                                             .format(name))
+                if 'offset' not in values:
+                    raise JoyTeleopException("Axis mapping for '{}' must have an offset"
+                                             .format(name))
+
+                if 'scale' not in values:
+                    raise JoyTeleopException("Axis mapping for '{}' must have a scale"
+                                             .format(name))
+
+        if self.msg_value is None and self.axis_mappings is None:
+            raise JoyTeleopException("No 'message_value' or 'axis_mappings' "
+                                     "configured for command '{}'".format(name))
+        if self.msg_value is not None and self.axis_mappings is not None:
+            raise JoyTeleopException("Only one of 'message_value' or 'axis_mappings' "
+                                     "can be configured for command '{}'".format(name))
+
+        qos = rclpy.qos.QoSProfile(history=rclpy.qos.QoSHistoryPolicy.KEEP_LAST,
+                                   depth=1,
+                                   reliability=rclpy.qos.QoSReliabilityPolicy.RELIABLE,
+                                   durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE)
+
+        self.pub = node.create_publisher(self.topic_type, config['topic_name'], qos)
+
+    def run(self, node, joy_state):
+        # The logic for responding to this joystick press is:
+        # 1.  Save off the current state of active.
+        # 2.  Update the current state of active based on buttons and axes.
+        # 3.  If this command is currently not active, return without publishing.
+        # 4.  If this is a msg_value, and the value of the previous active is the same as now,
+        #     debounce and return without publishing.
+        # 5.  In all other cases, publish.  This means that this is a msg_value and the button
+        #     transitioned from 0 -> 1, or it means that this is an axis mapping and data should
+        #     continue to be published without debouncing.
+
+        last_active = self.active
+        self.update_active_from_buttons_and_axes(joy_state)
+        if not self.active:
+            return
+        if self.msg_value is not None and last_active == self.active:
+            return
+
+        if self.msg_value is not None:
+            # This is the case for a static message.
+            msg = self.msg_value
+        else:
+            # This is the case to forward along mappings.
+            msg = self.topic_type()
+
+            for mapping, values in self.axis_mappings.items():
+                if 'axis' in values:
+                    if len(joy_state.axes) > values['axis']:
+                        val = joy_state.axes[values['axis']] * values.get('scale', 1.0) + \
+                            values.get('offset', 0.0)
+                    else:
+                        node.get_logger().error('Joystick has only {} axes (indexed from 0),'
+                                                'but #{} was referenced in config.'.format(
+                                                    len(joy_state.axes), values['axis']))
+                        val = 0.0
+                elif 'button' in values:
+                    if len(joy_state.buttons) > values['button']:
+                        val = joy_state.buttons[values['button']] * values.get('scale', 1.0) + \
+                            values.get('offset', 0.0)
+                    else:
+                        node.get_logger().error('Joystick has only {} buttons (indexed from 0),'
+                                                'but #{} was referenced in config.'.format(
+                                                    len(joy_state.buttons), values['button']))
+                        val = 0.0
+                else:
+                    node.get_logger().error(
+                        'No Supported axis_mappings type found in: {}'.format(mapping))
+                    val = 0.0
+
+                set_member(msg, mapping, val)
+
+        # If there is a stamp field, fill it with now().
+        if hasattr(msg, 'header'):
+            msg.header.stamp = node.get_clock().now()
+
+        self.pub.publish(msg)
+
+
+class JoyTeleopServiceCommand(JoyTeleopCommand):
+
+    def __init__(self, name, config, node):
+        super().__init__(name, config, 'buttons', 'axes')
+
+        self.name = name
+
+        service_name = config['service_name']
+
+        service_type = get_interface_type(config['interface_type'], 'srv')
+
+        self.request = service_type.Request()
+
+        if 'service_request' in config:
+            # Set the message fields in the request in the constructor.  This request will be used
+            # during runtime, and has the side benefit of giving the user early feedback if the
+            # config can't work.
+            set_message_fields(self.request, config['service_request'])
+
+        self.service_client = node.create_client(service_type, service_name)
+        self.client_ready = False
+
+    def run(self, node, joy_state):
+        # The logic for responding to this joystick press is:
+        # 1.  Save off the current state of active.
+        # 2.  Update the current state of active.
+        # 3.  If this command is currently not active, return without calling the service.
+        # 4.  Save off the current state of whether the service was ready.
+        # 5.  Update whether the service is ready.
+        # 6.  If the service is not currently ready, return without calling the service.
+        # 7.  If the service was already ready, and the state of the button is the same as before,
+        #     debounce and return without calling the service.
+        # 8.  In all other cases, call the service.  This means that either this is a button
+        #     transition 0 -> 1, or that the service became ready since the last call.
+
+        last_active = self.active
+        self.update_active_from_buttons_and_axes(joy_state)
+        if not self.active:
+            return
+        last_ready = self.client_ready
+        self.client_ready = self.service_client.service_is_ready()
+        if not self.client_ready:
+            return
+        if last_ready == self.client_ready and last_active == self.active:
+            return
+
+        self.service_client.call_async(self.request)
+
+
+class JoyTeleopActionCommand(JoyTeleopCommand):
+
+    def __init__(self, name, config, node):
+        super().__init__(name, config, 'buttons', 'axes')
+
+        self.name = name
+
+        action_type = get_interface_type(config['interface_type'], 'action')
+
+        self.goal = action_type.Goal()
+
+        if 'action_goal' in config:
+            # Set the message fields for the goal in the constructor.  This goal will be used
+            # during runtime, and has hte side benefit of giving the user early feedback if the
+            # config can't work.
+            set_message_fields(self.goal, config['action_goal'])
+
+        action_name = config['action_name']
+
+        self.action_client = ActionClient(node, action_type, action_name)
+        self.client_ready = False
+
+    def run(self, node, joy_state):
+        # The logic for responding to this joystick press is:
+        # 1.  Save off the current state of active.
+        # 2.  Update the current state of active.
+        # 3.  If this command is currently not active, return without calling the action.
+        # 4.  Save off the current state of whether the action was ready.
+        # 5.  Update whether the action is ready.
+        # 6.  If the action is not currently ready, return without calling the action.
+        # 7.  If the action was already ready, and the state of the button is the same as before,
+        #     debounce and return without calling the action.
+        # 8.  In all other cases, call the action.  This means that either this is a button
+        #     transition 0 -> 1, or that the action became ready since the last call.
+
+        last_active = self.active
+        self.update_active_from_buttons_and_axes(joy_state)
+        if not self.active:
+            return
+        last_ready = self.client_ready
+        self.client_ready = self.action_client.server_is_ready()
+        if not self.client_ready:
+            return
+        if last_ready == self.client_ready and last_active == self.active:
+            return
+
+        self.action_client.send_goal_async(self.goal)
+
+
 class JoyTeleop(Node):
     """
     Generic joystick teleoperation node.
@@ -59,285 +345,59 @@ class JoyTeleop(Node):
         super().__init__('joy_teleop', allow_undeclared_parameters=True,
                          automatically_declare_parameters_from_overrides=True)
 
-        self.pubs = {}
-        self.action_clients = {}
-        self.srv_clients = {}
-        self.message_types = {}
-        self.command_list = {}
-        self.offline_actions = []
-        self.offline_services = []
+        self.commands = []
 
-        self.old_buttons = []
+        names = []
 
-        for i, config in self.retrieve_config().items():
-            if i in self.command_list:
-                self.get_logger().error('command {} was duplicated'.format(i))
-                raise JoyTeleopException('command {} was duplicated'.format(i))
+        for name, config in self.retrieve_config().items():
+            if name in names:
+                raise JoyTeleopException("command '{}' was duplicated".format(name))
 
             try:
                 interface_group = config['type']
 
-                self.add_command(i, config)
-
                 if interface_group == 'topic':
-                    self.register_topic(i, config)
-                elif interface_group == 'action':
-                    self.register_action(i, config)
+                    self.commands.append(JoyTeleopTopicCommand(name, config, self))
                 elif interface_group == 'service':
-                    self.register_service(i, config)
+                    self.commands.append(JoyTeleopServiceCommand(name, config, self))
+                elif interface_group == 'action':
+                    self.commands.append(JoyTeleopActionCommand(name, config, self))
                 else:
-                    self.get_logger().error("unknown type '{type}'"
-                                            "for command '{i}'".format_map(locals()))
-                    raise JoyTeleopException("unknown type '{type}'"
-                                             "for command '{i}'".format_map(locals()))
-
+                    raise JoyTeleopException("unknown type '{interface_group}' "
+                                             "for command '{name}'".format_map(locals()))
             except TypeError:
-                # This can happen on parameters we don't control, like
-                # 'use_sim_time'.  Just ignore it with a warning for the user.
-                self.get_logger().warn('parameter {} is not a dict'.format(i))
+                # This can happen on parameters we don't control, like 'use_sim_time'.
+                self.get_logger().debug('parameter {} is not a dict'.format(name))
+
+            names.append(name)
 
         # Don't subscribe until everything has been initialized.
+        qos = rclpy.qos.QoSProfile(history=rclpy.qos.QoSHistoryPolicy.KEEP_LAST,
+                                   depth=1,
+                                   reliability=rclpy.qos.QoSReliabilityPolicy.RELIABLE,
+                                   durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE)
         self._subscription = self.create_subscription(
-            sensor_msgs.msg.Joy, 'joy', self.joy_callback, 1)
-
-        # Run a low-freq action updater
-        self._timer = self.create_timer(2.0, self.update_actions)
+            sensor_msgs.msg.Joy, 'joy', self.joy_callback, qos)
 
     def retrieve_config(self):
         config = {}
-        for param_name in sorted(list(self._parameters.keys())):
+        for param_name in sorted(self._parameters.keys()):
             pval = self.get_parameter(param_name).value
             self.insert_dict(config, param_name, pval)
         return config
 
     def insert_dict(self, dictionary, key, value):
-        split = key.split(PARAMETER_SEPARATOR_STRING, 1)
-        if len(split) > 1:
+        split = key.partition(PARAMETER_SEPARATOR_STRING)
+        if split[0] == key and split[1] == '' and split[2] == '':
+            dictionary[key] = value
+        else:
             if not split[0] in dictionary:
                 dictionary[split[0]] = {}
-            self.insert_dict(dictionary[split[0]], split[1], value)
-        else:
-            dictionary[key] = value
+            self.insert_dict(dictionary[split[0]], split[2], value)
 
-    def joy_callback(self, data):
-        try:
-            for c in self.command_list:
-                if self.match_button_command(c, data.buttons) or self.match_axis_command(c, data.axes):
-                    self.run_command(c, data)
-        except JoyTeleopException as e:
-            self.get_logger().error('error while parsing joystick input: %s', str(e))
-        self.old_buttons = data.buttons
-
-    def register_topic(self, name, command):
-        """Add a topic publisher for a joystick command."""
-        topic_name = command['topic_name']
-        try:
-            topic_type = self.get_interface_type(command['interface_type'], '.msg')
-            self.pubs[topic_name] = self.create_publisher(topic_type, topic_name, 1)
-        except JoyTeleopException as e:
-            self.get_logger().error(
-                'could not register topic for command {}: {}'.format(name, str(e)))
-
-    def register_action(self, name, command):
-        """Add an action client for a joystick command."""
-        action_name = command['action_name']
-        if action_name not in self.action_clients:
-            action_type = self.get_interface_type(command['interface_type'], '.action')
-            self.action_clients[action_name] = ActionClient(self, action_type, action_name)
-
-        if self.action_clients[action_name].server_is_ready():
-            if action_name in self.offline_actions:
-                self.offline_actions.remove(action_name)
-        else:
-            if action_name not in self.offline_actions:
-                self.get_logger().warn(
-                    'action {} is not ready yet'.format(action_name))
-                self.offline_actions.append(action_name)
-
-    class AsyncServiceProxy(object):
-
-        def __init__(self, node, service_name, service_type):
-            self._service_client = node.create_client(service_type, service_name)
-            if not self._service_client.wait_for_service(timeout_sec=1.0):
-                raise JoyTeleopException('Service {} is not available'.format(service_name))
-
-        def __call__(self, request):
-            self._service_client.call_async(request)
-            return True
-
-    def register_service(self, name, command):
-        """Add an AsyncServiceProxy for a joystick command."""
-        service_name = command['service_name']
-        try:
-            service_type = self.get_interface_type(command['interface_type'], '.srv')
-            self.srv_clients[service_name] = self.AsyncServiceProxy(
-                self,
-                service_name,
-                service_type)
-
-            if service_name in self.offline_services:
-                self.offline_services.remove(service_name)
-        except JoyTeleopException:
-            if service_name not in self.offline_services:
-                self.offline_services.append(service_name)
-
-    def match_button_command(self, c, buttons):
-        """Find a command matching a joystick configuration."""
-        if len(buttons) == 0 or not 'buttons' in self.command_list[c] or len(self.command_list[c]['buttons']) == 0 or \
-           len(buttons) <= max(self.command_list[c]['buttons']):
-            return False
-        return any(buttons[cmd_button] for cmd_button in self.command_list[c]['buttons'])
-
-    def match_axis_command(self, c, axes):
-        """Find a command matching a joystick configuration."""
-        if len(axes) == 0 or not 'axes' in self.command_list[c] or len(self.command_list[c]['axes']) == 0 or \
-           len(axes) <= max(int(cmd_axis) for cmd_axis, value in self.command_list[c]['axes'].items()):
-            return False
-
-        # We know there are enough axes that we *might* match.  Iterate through
-        # each of the incoming axes, and if they are totally pressed (1.0),
-        # we have a match and should run the command.
-        for cmd_axis, value in self.command_list[c]['axes'].items():
-            if axes[int(cmd_axis)] == value:
-                return True
-
-        return False
-
-    def add_command(self, name, command):
-        """Add a command to the command list."""
-        if command['type'] == 'topic':
-            if 'deadman_buttons' not in command:
-                command['deadman_buttons'] = []
-            command['buttons'] = command['deadman_buttons']
-            if 'deadman_axes' not in command:
-                command['deadman_axes'] = []
-            command['axes'] = command['deadman_axes']
-        elif command['type'] == 'action':
-            if 'action_goal' not in command:
-                command['action_goal'] = {}
-        elif command['type'] == 'service':
-            if 'service_request' not in command:
-                command['service_request'] = {}
-        self.command_list[name] = command
-
-    def run_command(self, command, joy_state):
-        """Run a joystick command."""
-        cmd = self.command_list[command]
-        if cmd['type'] == 'topic':
-            self.run_topic(command, joy_state)
-        elif cmd['type'] == 'action':
-            if cmd['action_name'] in self.offline_actions:
-                self.get_logger().error('command {} was not played because the action '
-                                        'server was unavailable. Trying to reconnect...'
-                                        .format(cmd['action_name']))
-                self.register_action(command, self.command_list[command])
-            else:
-                if joy_state.buttons != self.old_buttons:
-                    self.run_action(command, joy_state)
-        elif cmd['type'] == 'service':
-            if cmd['service_name'] in self.offline_services:
-                self.get_logger().error('command {} was not played because the service '
-                                        'server was unavailable. Trying to reconnect...'
-                                        .format(cmd['service_name']))
-                self.register_service(command, self.command_list[command])
-            else:
-                if joy_state.buttons != self.old_buttons:
-                    self.run_service(command, joy_state)
-        else:
-            raise JoyTeleopException(
-                'command {} is neither a topic publisher nor an action or service client'
-                .format(command))
-
-    def run_topic(self, c, joy_state):
-        cmd = self.command_list[c]
-        msg = self.get_interface_type(cmd['interface_type'], '.msg')()
-
-        if 'message_value' in cmd:
-            if cmd['message_value'] is not None:
-                for target, param in cmd['message_value'].items():
-                    self.set_member(msg, target, param['value'])
-
-        else:
-            for mapping, values in cmd['axis_mappings'].items():
-                if 'axis' in values:
-                    if len(joy_state.axes) > values['axis']:
-                        val = joy_state.axes[values['axis']] * values.get('scale', 1.0) + \
-                            values.get('offset', 0.0)
-                    else:
-                        self.get_logger().error('Joystick has only {} axes (indexed from 0),'
-                                                'but #{} was referenced in config.'.format(
-                                                    len(joy_state.axes), values['axis']))
-                        val = 0.0
-                elif 'button' in values:
-                    if len(joy_state.buttons) > values['button']:
-                        val = joy_state.buttons[values['button']] * values.get('scale', 1.0) + \
-                            values.get('offset', 0.0)
-                    else:
-                        self.get_logger().error('Joystick has only {} buttons (indexed from 0),'
-                                                'but #{} was referenced in config.'.format(
-                                                    len(joy_state.buttons), values['button']))
-                        val = 0.0
-                else:
-                    self.get_logger().error(
-                        'No Supported axis_mappings type found in: {}'.format(mapping))
-                    val = 0.0
-
-                self.set_member(msg, mapping, val)
-
-        # If there is a stamp field, fill it with rospy.Time.now()
-        if hasattr(msg, 'header'):
-            msg.header.stamp = self.get_clock().now()
-
-        self.pubs[cmd['topic_name']].publish(msg)
-
-    def run_action(self, c, joy_state):
-        cmd = self.command_list[c]
-        goal = self.get_interface_type(cmd['interface_type'], '.action').Goal()
-        for target, value in cmd['action_goal'].items():
-            set_message_fields(goal, {target: value})
-
-        # No need to wait
-        self.action_clients[cmd['action_name']].send_goal_async(goal)
-
-    def run_service(self, c, joy_state):
-        cmd = self.command_list[c]
-        request = self.get_interface_type(cmd['interface_type'], '.srv').Request()
-        for target, value in cmd['service_request'].items():
-            set_message_fields(request, {target: value})
-        if not self.srv_clients[cmd['service_name']](request):
-            self.get_logger().info('Not sending new service request for command {} '
-                                   'because previous request has not finished'.format(c))
-
-    def set_member(self, msg, member, value):
-        ml = member.split('-')
-        if len(ml) < 1:
-            return
-        target = msg
-        for i in ml[:-1]:
-            target = getattr(target, i)
-        setattr(target, ml[-1], value)
-
-    def get_interface_type(self, type_name, ext):
-        if type_name not in self.message_types:
-            try:
-                package, interface, message = type_name.split('/')
-                mod = importlib.import_module(package + ext)
-                self.message_types[type_name] = getattr(mod, message)
-            except ValueError:
-                raise JoyTeleopException('message type format error')
-            except ImportError:
-                raise JoyTeleopException('module {} could not be loaded'.format(package))
-            except AttributeError:
-                raise JoyTeleopException(
-                    'message {} could not be loaded from module {}'.format(package, message))
-        return self.message_types[type_name]
-
-    def update_actions(self, evt=None):
-        for name, cmd in self.command_list.items():
-            if cmd['type'] != 'action':
-                continue
-            if cmd['action_name'] in self.offline_actions:
-                self.register_action(name, cmd)
+    def joy_callback(self, msg):
+        for command in self.commands:
+            command.run(self, msg)
 
 
 def main(args=None):
@@ -353,7 +413,3 @@ def main(args=None):
 
     node.destroy_node()
     rclpy.shutdown()
-
-
-if __name__ == '__main__':
-    main()

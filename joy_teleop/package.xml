@@ -20,6 +20,7 @@
   <test_depend>ament_flake8</test_depend>
   <test_depend>ament_pep257</test_depend>
   <test_depend>ament_xmllint</test_depend>
+  <test_depend>example_interfaces</test_depend>
   <test_depend>geometry_msgs</test_depend>
   <test_depend>std_msgs</test_depend>
   <test_depend>std_srvs</test_depend>

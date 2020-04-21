@@ -2,6 +2,20 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add the ability to have deadman axes. (`#46 <https://github.com/ros-teleop/teleop_tools/issues/46>`_)
+  * Add the ability to have deadman axes.
+  Some controllers don't have a convenient shoulder trigger
+  button, but do have shoulder "axes".  Allow the axes to
+  be used for a deadman trigger, assuming they are pressed
+  all the way.  Note that I used a dict for the list of
+  axes, as this provides the most convenient way to deal
+  with controllers that use 1.0, -1.0, or 0.0 as the "far"
+  end of the axis.
+  * Make sure to ignore buttons and axes that don't exist.
+* Contributors: Chris Lalancette
+
 1.0.2 (2020-02-10)
 ------------------
 * Avoid halting on action server status checks. (`#48 <https://github.com/ros-teleop/teleop_tools/issues/48>`_)

@@ -2,6 +2,9 @@
 Changelog for package teleop_tools_msgs
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.0.2 (2020-02-10)
 ------------------
 

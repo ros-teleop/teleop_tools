@@ -10,6 +10,7 @@
 
   <run_depend>joy_teleop</run_depend>
   <run_depend>key_teleop</run_depend>
+  <run_depend>mouse_teleop</run_depend>
   <run_depend>teleop_tools_msgs</run_depend>
 
   <export>

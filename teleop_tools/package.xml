@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="3">
   <name>teleop_tools</name>
   <version>0.3.1</version>
   <description>A set of generic teleoperation tools for any robot.</description>
@@ -8,10 +8,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>joy_teleop</run_depend>
-  <run_depend>key_teleop</run_depend>
-  <run_depend>mouse_teleop</run_depend>
-  <run_depend>teleop_tools_msgs</run_depend>
+  <exec_depend>joy_teleop</exec_depend>
+  <exec_depend>key_teleop</exec_depend>
+  <exec_depend>mouse_teleop</exec_depend>
+  <exec_depend>teleop_tools_msgs</exec_depend>
 
   <export>
     <metapackage/>

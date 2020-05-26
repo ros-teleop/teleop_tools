@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from future.utils import iteritems
 import importlib
 
 import rospy

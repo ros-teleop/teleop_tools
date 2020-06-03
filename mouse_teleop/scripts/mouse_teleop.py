@@ -7,7 +7,10 @@
 # Authors:
 #   * Enrique Fernandez
 
-import Tkinter
+try:
+    import tkinter
+except ImportError:
+    import Tkinter as tkinter
 
 import rospy
 from geometry_msgs.msg import Twist, Vector3
@@ -37,18 +40,18 @@ class MouseTeleop():
         self._y = None
 
         # Create window:
-        self._root = Tkinter.Tk()
+        self._root = tkinter.Tk()
         self._root.title('Mouse Teleop')
 
         # Make window non-resizable:
         self._root.resizable(0, 0)
 
         # Create canvas:
-        self._canvas = Tkinter.Canvas(self._root, bg='white')
+        self._canvas = tkinter.Canvas(self._root, bg='white')
 
         # Create canvas objects:
         self._canvas.create_arc(0, 0, 0, 0, fill='red', outline='red',
-                width=1, style=Tkinter.PIESLICE, start=90.0, tag='w')
+                width=1, style=tkinter.PIESLICE, start=90.0, tag='w')
         self._canvas.create_line(0, 0, 0, 0, fill='blue', width=4, tag='v_x')
 
         if self._holonomic:
@@ -56,18 +59,18 @@ class MouseTeleop():
                     fill='blue', width=4, tag='v_y')
 
         # Create canvas text objects:
-        self._text_v_x = Tkinter.StringVar()
+        self._text_v_x = tkinter.StringVar()
         if self._holonomic:
-            self._text_v_y = Tkinter.StringVar()
-        self._text_w   = Tkinter.StringVar()
+            self._text_v_y = tkinter.StringVar()
+        self._text_w   = tkinter.StringVar()
 
-        self._label_v_x = Tkinter.Label(self._root,
-                anchor=Tkinter.W, textvariable=self._text_v_x)
+        self._label_v_x = tkinter.Label(self._root,
+                anchor=tkinter.W, textvariable=self._text_v_x)
         if self._holonomic:
-            self._label_v_y = Tkinter.Label(self._root,
-                    anchor=Tkinter.W, textvariable=self._text_v_y)
-        self._label_w = Tkinter.Label(self._root,
-                anchor=Tkinter.W, textvariable=self._text_w)
+            self._label_v_y = tkinter.Label(self._root,
+                    anchor=tkinter.W, textvariable=self._text_v_y)
+        self._label_w = tkinter.Label(self._root,
+                anchor=tkinter.W, textvariable=self._text_w)
 
         if self._holonomic:
             self._text_v_x.set('v_x = %0.2f m/s' % self._v_x)

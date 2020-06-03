@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<package>
+<package format="3">
   <name>joy_teleop</name>
   <version>0.3.1</version>
   <description>A (to be) generic joystick interface to control a robot</description>
@@ -11,10 +11,10 @@
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <run_depend>actionlib</run_depend>
-  <run_depend>sensor_msgs</run_depend>
-  <run_depend>rospy</run_depend>
-  <run_depend>rostopic</run_depend>
-  <run_depend>teleop_tools_msgs</run_depend>
+  <exec_depend>actionlib</exec_depend>
+  <exec_depend>sensor_msgs</exec_depend>
+  <exec_depend>rospy</exec_depend>
+  <exec_depend>rostopic</exec_depend>
+  <exec_depend>teleop_tools_msgs</exec_depend>
 
 </package>

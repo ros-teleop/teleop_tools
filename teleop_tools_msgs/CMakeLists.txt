@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.3)
+cmake_minimum_required(VERSION 3.0.2)
 project(teleop_tools_msgs)
 
 find_package(catkin REQUIRED COMPONENTS
@@ -10,7 +10,7 @@ add_action_files(DIRECTORY action FILES Increment.action)
 generate_messages(DEPENDENCIES actionlib_msgs)
 
 catkin_package(
-  CATKIN_DEPENDS message_runtime 
+  CATKIN_DEPENDS message_runtime
                  actionlib_msgs
 )
 

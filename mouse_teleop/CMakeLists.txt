@@ -5,8 +5,8 @@ find_package(catkin REQUIRED)
 
 catkin_package()
 
-install(PROGRAMS scripts/mouse_teleop.py
-    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
+catkin_install_python(PROGRAMS scripts/mouse_teleop.py
+                      DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION})
 
 foreach(dir config launch)
   install(DIRECTORY ${dir}/

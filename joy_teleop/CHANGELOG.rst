@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.0 (2020-06-04)
+------------------
 * Fix iteritems and dependency in python3
 * Bump CMake version to avoid CMP0048
 * Fix install of python scripts for Noetic

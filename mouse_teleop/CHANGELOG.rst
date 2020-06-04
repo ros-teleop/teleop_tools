@@ -2,8 +2,8 @@
 Changelog for package mouse_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.0 (2020-06-04)
+------------------
 * Fix tk dependency
 * Bump CMake version to avoid CMP0048
 * Fix install of python scripts for Noetic

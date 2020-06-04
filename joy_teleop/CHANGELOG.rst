@@ -2,6 +2,14 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix iteritems and dependency in python3
+* Bump CMake version to avoid CMP0048
+* Fix install of python scripts for Noetic
+* Python3 compatibility for noetic (`#52 <https://github.com/ros-teleop/teleop_tools/issues/52>`_)
+* Contributors: Bence Magyar, Tim Clephas
+
 0.3.1 (2020-02-10)
 ------------------
 * fix python3 compatibility (`#42 <https://github.com/ros-teleop/teleop_tools/issues/42>`_)

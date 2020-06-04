@@ -2,6 +2,14 @@
 Changelog for package mouse_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix tk dependency
+* Bump CMake version to avoid CMP0048
+* Fix install of python scripts for Noetic
+* Python3 compatibility for noetic (`#52 <https://github.com/ros-teleop/teleop_tools/issues/52>`_)
+* Contributors: Bence Magyar, Tim Clephas
+
 0.3.1 (2020-02-10)
 ------------------
 

@@ -2,6 +2,13 @@
 Changelog for package teleop_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Bump CMake version to avoid CMP0048
+* Python3 compatibility for noetic (`#52 <https://github.com/ros-teleop/teleop_tools/issues/52>`_)
+* Add mouse_teleop to metapackage
+* Contributors: Bence Magyar, Tim Clephas, Yasuhiro Ishiguro
+
 0.3.1 (2020-02-10)
 ------------------
 

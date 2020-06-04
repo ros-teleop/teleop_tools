@@ -62,7 +62,7 @@ class TextWindow():
         if lineno < 0 or lineno >= self._num_lines:
             raise ValueError('lineno out of bounds')
         height, width = self._screen.getmaxyx()
-        y = (height / self._num_lines) * lineno
+        y = int((height / self._num_lines) * lineno)
         x = 10
         for text in message.split('\n'):
             text = text.ljust(width)

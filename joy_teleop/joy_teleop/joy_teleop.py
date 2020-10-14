@@ -33,6 +33,7 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 import importlib
+import typing
 
 import rclpy
 from rclpy.action import ActionClient
@@ -46,7 +47,7 @@ class JoyTeleopException(Exception):
     pass
 
 
-def get_interface_type(type_name, interface_type):
+def get_interface_type(type_name: str, interface_type: str) -> typing.Any:
     split = type_name.split('/')
     if len(split) != 3:
         raise JoyTeleopException("Invalid type_name '{}'".format(type_name))
@@ -61,7 +62,7 @@ def get_interface_type(type_name, interface_type):
     return getattr(mod, message)
 
 
-def set_member(msg, member, value):
+def set_member(msg: typing.Any, member: str, value: typing.Any) -> None:
     ml = member.split('-')
     if len(ml) < 1:
         return
@@ -73,11 +74,12 @@ def set_member(msg, member, value):
 
 class JoyTeleopCommand:
 
-    def __init__(self, name, config, button_name, axes_name):
-        self.buttons = []
+    def __init__(self, name: str, config: typing.Dict[str, typing.Any],
+                 button_name: str, axes_name: str) -> None:
+        self.buttons: typing.List[str] = []
         if button_name in config:
             self.buttons = config[button_name]
-        self.axes = []
+        self.axes: typing.List[str] = []
         if axes_name in config:
             self.axes = config[axes_name]
 
@@ -85,19 +87,19 @@ class JoyTeleopCommand:
             raise JoyTeleopException("No buttons or axes configured for command '{}'".format(name))
 
         # Used to short-circuit the run command if there aren't enough buttons in the message.
-        self.min_button = None
+        self.min_button = 0
         if len(self.buttons) > 0:
-            self.min_button = min(self.buttons)
-        self.min_axis = None
+            self.min_button = int(min(self.buttons))
+        self.min_axis = 0
         if len(self.axes) > 0:
-            self.min_axis = min(self.axes)
+            self.min_axis = int(min(self.axes))
 
         # This can be used to "debounce" the message; if there are multiple presses of the buttons
         # or axes, the command may only activate on the first one until it toggles again.  But this
         # is a command-specific behavior, the base class only provides the mechanism.
         self.active = False
 
-    def update_active_from_buttons_and_axes(self, joy_state):
+    def update_active_from_buttons_and_axes(self, joy_state: sensor_msgs.msg.Joy) -> None:
         self.active = False
 
         if (self.min_button is not None and len(joy_state.buttons) <= self.min_button) and \
@@ -124,7 +126,7 @@ class JoyTeleopCommand:
 
 class JoyTeleopTopicCommand(JoyTeleopCommand):
 
-    def __init__(self, name, config, node):
+    def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
         super().__init__(name, config, 'deadman_buttons', 'deadman_axes')
 
         self.name = name
@@ -147,7 +149,7 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
         # An 'axis_mapping' takes data from one part of the message and scales and offsets it to
         # publish if an activation happens.  This is typically used to take joystick analog data
         # and republish it as a cmd_vel.  It is mutually exclusive with a 'message_value'.
-        self.axis_mappings = None
+        self.axis_mappings = {}
         if 'axis_mappings' in config:
             self.axis_mappings = config['axis_mappings']
             # Now check that the mappings have all of the required configuration.
@@ -163,10 +165,10 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
                     raise JoyTeleopException("Axis mapping for '{}' must have a scale"
                                              .format(name))
 
-        if self.msg_value is None and self.axis_mappings is None:
+        if self.msg_value is None and not self.axis_mappings:
             raise JoyTeleopException("No 'message_value' or 'axis_mappings' "
                                      "configured for command '{}'".format(name))
-        if self.msg_value is not None and self.axis_mappings is not None:
+        if self.msg_value is not None and self.axis_mappings:
             raise JoyTeleopException("Only one of 'message_value' or 'axis_mappings' "
                                      "can be configured for command '{}'".format(name))
 
@@ -177,7 +179,7 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
 
         self.pub = node.create_publisher(self.topic_type, config['topic_name'], qos)
 
-    def run(self, node, joy_state):
+    def run(self, node: Node, joy_state: sensor_msgs.msg.Joy) -> None:
         # The logic for responding to this joystick press is:
         # 1.  Save off the current state of active.
         # 2.  Update the current state of active based on buttons and axes.
@@ -237,7 +239,7 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
 
 class JoyTeleopServiceCommand(JoyTeleopCommand):
 
-    def __init__(self, name, config, node):
+    def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
         super().__init__(name, config, 'buttons', 'axes')
 
         self.name = name
@@ -257,7 +259,7 @@ class JoyTeleopServiceCommand(JoyTeleopCommand):
         self.service_client = node.create_client(service_type, service_name)
         self.client_ready = False
 
-    def run(self, node, joy_state):
+    def run(self, node: Node, joy_state: sensor_msgs.msg.Joy) -> None:
         # The logic for responding to this joystick press is:
         # 1.  Save off the current state of active.
         # 2.  Update the current state of active.
@@ -286,7 +288,7 @@ class JoyTeleopServiceCommand(JoyTeleopCommand):
 
 class JoyTeleopActionCommand(JoyTeleopCommand):
 
-    def __init__(self, name, config, node):
+    def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
         super().__init__(name, config, 'buttons', 'axes')
 
         self.name = name
@@ -306,7 +308,7 @@ class JoyTeleopActionCommand(JoyTeleopCommand):
         self.action_client = ActionClient(node, action_type, action_name)
         self.client_ready = False
 
-    def run(self, node, joy_state):
+    def run(self, node: Node, joy_state: sensor_msgs.msg.Joy) -> None:
         # The logic for responding to this joystick press is:
         # 1.  Save off the current state of active.
         # 2.  Update the current state of active.
@@ -386,7 +388,7 @@ class JoyTeleop(Node):
             self.insert_dict(config, param_name, pval)
         return config
 
-    def insert_dict(self, dictionary, key, value):
+    def insert_dict(self, dictionary: typing.Dict[str, typing.Any], key: str, value: str) -> None:
         split = key.partition(PARAMETER_SEPARATOR_STRING)
         if split[0] == key and split[1] == '' and split[2] == '':
             dictionary[key] = value
@@ -395,7 +397,7 @@ class JoyTeleop(Node):
                 dictionary[split[0]] = {}
             self.insert_dict(dictionary[split[0]], split[2], value)
 
-    def joy_callback(self, msg):
+    def joy_callback(self, msg: sensor_msgs.msg.Joy) -> None:
         for command in self.commands:
             command.run(self, msg)
 

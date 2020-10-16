@@ -2,6 +2,49 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Change the file mode of the python files in joy_teleop.
+  They don't need to be executable.
+* Add in Python typing to joy_teleop.
+  This also showed a few bugs.
+* Add a test for service becoming ready.
+* Add in tests for parameter failures.
+* Add a test for debouncing.
+  The test works by having a subscription to the output topic.
+  Every time the subscription is received, we increment a counter.
+  There is also a timer callback that executes every 0.1 seconds,
+  publishing the 'joy' message.  Like other tests, this publication
+  toggles the button on and off to avoid debouncing.  Unlike other
+  tests, once we have seen one message come in, we stop toggling
+  and just set it to one all of the time to ensure debouncing
+  works properly.
+* Add in a test for actions.
+* Add in tests for services.
+* Add a test for topic axis mappings.
+* Add in a test for a simple message.
+* Add in joy_teleop common testing tools.
+  These will be used by the rest of the tests.
+* Add in unit tests for get_interface_type.
+* Rename test_pop257 -> test_pep257.
+* Rewrite to use classes instead of maps.
+  This has a number of benefits:
+  1.  I think it is much easier to read; the classes only implement
+  the pieces they are concerned with.
+  2.  Actions and services now automatically reconnect as action
+  servers or service servers come and go.
+  3.  It is easier to write tests for individual functionality.
+  The API to this node stays the same; the parameters and topics
+  that were used before are still honored.
+* Raise errors when parsing configuration fails.
+  This lets the user know that their configuration is wrong
+  much earlier.
+* Get rid of self.config.
+  We never use it outside of the constructor, so just make it
+  a local variable.
+* Rename al_clients -> action_clients.
+* Contributors: Chris Lalancette
+
 1.1.0 (2020-04-21)
 ------------------
 * Add the ability to have deadman axes. (`#46 <https://github.com/ros-teleop/teleop_tools/issues/46>`_)

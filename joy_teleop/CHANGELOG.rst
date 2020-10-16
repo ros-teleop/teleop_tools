@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.0 (2020-10-16)
+------------------
 * Change the file mode of the python files in joy_teleop.
   They don't need to be executable.
 * Add in Python typing to joy_teleop.

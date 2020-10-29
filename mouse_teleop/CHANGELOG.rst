@@ -2,8 +2,8 @@
 Changelog for package mouse_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.2.1 (2020-10-29)
+------------------
 * Use the python3-* rosdep keys.
 * Contributors: Chris Lalancette
 

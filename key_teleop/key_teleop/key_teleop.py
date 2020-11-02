@@ -49,6 +49,7 @@ from geometry_msgs.msg import Twist
 import rclpy
 from rclpy.duration import Duration
 from rclpy.node import Node
+from rclpy.qos import qos_profile_system_default
 
 
 class Velocity(object):
@@ -124,7 +125,7 @@ class SimpleKeyTeleop(Node):
         super().__init__('key_teleop')
 
         self._interface = interface
-        self._pub_cmd = self.create_publisher(Twist, 'key_vel')
+        self._pub_cmd = self.create_publisher(Twist, 'key_vel', qos_profile_system_default)
 
         self._hz = self.declare_parameter('hz', 10).value
 

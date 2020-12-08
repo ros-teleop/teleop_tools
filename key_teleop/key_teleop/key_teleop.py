@@ -127,9 +127,9 @@ class SimpleKeyTeleop(Node):
 
         self._interface = interface
 
-        self._twist_stamp_enabled = self.declare_parameter('twist_stamped_enabled', False).value
+        self._publish_stamped_twist = self.declare_parameter('twist_stamped_enabled', False).value
 
-        if self._twist_stamp_enabled:
+        if self._publish_stamped_twist:
             self._pub_cmd = self.create_publisher(TwistStamped, 'key_vel', qos_profile_system_default)
         else:
             self._pub_cmd = self.create_publisher(Twist, 'key_vel', qos_profile_system_default)
@@ -169,7 +169,7 @@ class SimpleKeyTeleop(Node):
         twist.angular.z = angular
         return twist
 
-    def _get_twist_stamped(self, linear, angular):
+    def _make_twist_stamped(self, linear, angular):
         twist_stamped = TwistStamped()
         header = Header()
         header.stamp = rclpy.clock.Clock().now().to_msg()
@@ -214,8 +214,8 @@ class SimpleKeyTeleop(Node):
         self._interface.write_line(5, 'Use arrow keys to move, q to exit.')
         self._interface.refresh()
 
-        if self._twist_stamp_enabled:
-            twist = self._get_twist_stamped(self._linear, self._angular)
+        if self._publish_stamped_twist:
+            twist = self._make_twist_stamped(self._linear, self._angular)
         else:
             twist = self._get_twist(self._linear, self._angular)
 

@@ -163,7 +163,7 @@ class SimpleKeyTeleop(Node):
             # TODO(artivis) use Rate once available
             time.sleep(1.0/self._hz)
 
-    def _get_twist(self, linear, angular):
+    def _make_twist(self, linear, angular):
         twist = Twist()
         twist.linear.x = linear
         twist.angular.z = angular
@@ -217,7 +217,7 @@ class SimpleKeyTeleop(Node):
         if self._publish_stamped_twist:
             twist = self._make_twist_stamped(self._linear, self._angular)
         else:
-            twist = self._get_twist(self._linear, self._angular)
+            twist = self._make_twist(self._linear, self._angular)
 
         self._pub_cmd.publish(twist)
 

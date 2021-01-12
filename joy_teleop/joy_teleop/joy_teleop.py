@@ -232,7 +232,7 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
 
         # If there is a stamp field, fill it with now().
         if hasattr(msg, 'header'):
-            msg.header.stamp = node.get_clock().now()
+            msg.header.stamp = node.get_clock().now().to_msg()
 
         self.pub.publish(msg)
 

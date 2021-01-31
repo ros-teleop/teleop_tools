@@ -15,8 +15,10 @@ setup(
     data_files=[
         (share_path, ['package.xml']),
         (os.path.join(share_path, 'config'), [os.path.join('config', f'{package_name}.yaml')]),
-        (os.path.join(share_path, 'launch'), [os.path.join('launch', f'{package_name}.launch.py')]),
-        (os.path.join('share', 'ament_index', 'resource_index', 'packages'), [os.path.join('resource', package_name)]),
+        (os.path.join(share_path, 'launch'),
+         [os.path.join('launch', f'{package_name}.launch.py')]),
+        (os.path.join('share', 'ament_index', 'resource_index', 'packages'),
+         [os.path.join('resource', package_name)]),
     ],
     install_requires=['setuptools'],
     zip_safe=True,

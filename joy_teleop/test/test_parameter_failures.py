@@ -56,7 +56,7 @@ class TestJoyTeleopParameterFailures(unittest.TestCase):
         def launch_joy_teleop(self, parameters):
             joy_teleop_node = launch_ros.actions.Node(
                 package='joy_teleop',
-                node_executable='joy_teleop',
+                executable='joy_teleop',
                 output='both',
                 parameters=[parameters])
 

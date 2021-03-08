@@ -154,16 +154,18 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
             self.axis_mappings = config['axis_mappings']
             # Now check that the mappings have all of the required configuration.
             for mapping, values in self.axis_mappings.items():
-                if 'axis' not in values and 'button' not in values:
-                    raise JoyTeleopException("Axis mapping for '{}' must have an axis or button"
-                                             .format(name))
-                if 'offset' not in values:
-                    raise JoyTeleopException("Axis mapping for '{}' must have an offset"
+                if 'axis' not in values and 'button' not in values and 'value' not in values:
+                    raise JoyTeleopException("Axis mapping for '{}' must have an axis, button, or value"
                                              .format(name))
 
-                if 'scale' not in values:
-                    raise JoyTeleopException("Axis mapping for '{}' must have a scale"
-                                             .format(name))
+                if 'axis' in values:
+                    if 'offset' not in values:
+                        raise JoyTeleopException("Axis mapping for '{}' must have an offset"
+                                                 .format(name))
+
+                    if 'scale' not in values:
+                        raise JoyTeleopException("Axis mapping for '{}' must have a scale"
+                                                 .format(name))
 
         if self.msg_value is None and not self.axis_mappings:
             raise JoyTeleopException("No 'message_value' or 'axis_mappings' "
@@ -223,6 +225,9 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
                                                 'but #{} was referenced in config.'.format(
                                                     len(joy_state.buttons), values['button']))
                         val = 0.0
+                elif 'value' in values:
+                    # Pass on the value as its Python-implicit type
+                    val = values.get('value')
                 else:
                     node.get_logger().error(
                         'No Supported axis_mappings type found in: {}'.format(mapping))

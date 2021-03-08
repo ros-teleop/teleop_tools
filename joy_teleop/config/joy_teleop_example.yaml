@@ -3,7 +3,7 @@ joy_teleop:
 
     walk:
       type: topic
-      interface_type: geometry_msgs/msg/Twist
+      interface_type: geometry_msgs/msg/TwistStamped
       topic_name: cmd_vel
       deadman_buttons: [4]
       axis_mappings:
@@ -20,6 +20,8 @@ joy_teleop:
         linear-z:
           button: 2
           scale: 3.0
+        header-frame_id:
+          value: 'my_tf_frame'
 
     force_push:
       type: topic

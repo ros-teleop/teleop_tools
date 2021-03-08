@@ -14,9 +14,11 @@ joy_teleop:
         angular-z:
           axis: 0
           scale: 0.5
+          offset: 0
         linear-y:
           axis: 2
           scale: 0.3
+          offset: 0
         linear-z:
           button: 2
           scale: 3.0
@@ -30,9 +32,11 @@ joy_teleop:
         force-x:
           axis: 3
           scale: 40
+          offset: 0
         force-y:
           axis: 2
           scale: 40
+          offset: 0
 
     stop:
       type: topic

@@ -75,16 +75,21 @@ def set_member(msg: typing.Any, member: str, value: typing.Any) -> None:
 class JoyTeleopCommand:
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any],
-                 button_name: str, axes_name: str) -> None:
+                 button_name: str, axes_name: str, toggle_buttons: str) -> None:
         self.buttons: typing.List[str] = []
+        self.toggle_buttons: typing.List[str] = []
         if button_name in config:
             self.buttons = config[button_name]
         self.axes: typing.List[str] = []
         if axes_name in config:
             self.axes = config[axes_name]
+        if toggle_buttons in config:
+            self.toggle_buttons = config[toggle_buttons]
 
-        if len(self.buttons) == 0 and len(self.axes) == 0:
+        if len(self.buttons) == 0 and len(self.axes) == 0 and len(self.toggle_buttons) == 0:
             raise JoyTeleopException("No buttons or axes configured for command '{}'".format(name))
+
+        self.prev_joy_state = sensor_msgs.msg.Joy()
 
         # Used to short-circuit the run command if there aren't enough buttons in the message.
         self.min_button = 0
@@ -127,11 +132,23 @@ class JoyTeleopCommand:
 class JoyTeleopTopicCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'deadman_buttons', 'deadman_axes')
+        super().__init__(name, config, 'deadman_buttons', 'deadman_axes', 'toggle_buttons')
 
         self.name = name
 
         self.topic_type = get_interface_type(config['interface_type'], 'msg')
+
+        self.toggle_buttons = []
+        if 'toggle_buttons' in config:
+            self.toggle_buttons = config['toggle_buttons']
+        self.toggle_enabled = True
+        # Need 2 rising or falling edges for a change in toggle state (button pressed and released)
+        self.toggle_press_count = 0
+
+        # For this control mode, self.buttons are deadman_buttons
+        self.have_deadman = False
+        if len(self.buttons) > 0:
+            self.have_deadman = True
 
         # A 'message_value' is a fixed message that is sent in response to an activation.  It is
         # mutually exclusive with an 'axis_mapping'.
@@ -194,9 +211,25 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
 
         last_active = self.active
         self.update_active_from_buttons_and_axes(joy_state)
-        if not self.active:
-            return
+        # This is where the return due to deadman switch happens
+        if self.have_deadman:
+            if not self.active:
+                return
         if self.msg_value is not None and last_active == self.active:
+            return
+
+        # Check toggle status for this command
+        if len(self.prev_joy_state.buttons) > 0:
+            for toggle_button in self.toggle_buttons:
+                if joy_state.buttons[int(toggle_button)] != self.prev_joy_state.buttons[toggle_button]:
+                    # Need 2 rising or falling edges for a change in toggle state (button pressed and released)
+                    self.toggle_press_count = self.toggle_press_count + 1
+                    if self.toggle_press_count == 2:
+                        self.toggle_enabled = not self.toggle_enabled
+                        self.toggle_press_count = 0
+        self.prev_joy_state = joy_state
+        if not self.toggle_enabled:
+            node.get_logger().info("RETURNING DUE TO TOGGLE")
             return
 
         if self.msg_value is not None:
@@ -245,7 +278,7 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
 class JoyTeleopServiceCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'buttons', 'axes')
+        super().__init__(name, config, 'buttons', 'axes', 'toggle_buttons')
 
         self.name = name
 
@@ -294,7 +327,7 @@ class JoyTeleopServiceCommand(JoyTeleopCommand):
 class JoyTeleopActionCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'buttons', 'axes')
+        super().__init__(name, config, 'buttons', 'axes', 'toggle_buttons')
 
         self.name = name
 

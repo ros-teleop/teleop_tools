@@ -229,7 +229,6 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
                         self.toggle_press_count = 0
         self.prev_joy_state = joy_state
         if not self.toggle_enabled:
-            node.get_logger().info("RETURNING DUE TO TOGGLE")
             return
 
         if self.msg_value is not None:

@@ -6,6 +6,7 @@ joy_teleop:
       interface_type: geometry_msgs/msg/TwistStamped
       topic_name: cmd_vel
       deadman_buttons: [4]
+      toggle_buttons: [0]
       axis_mappings:
         linear-x:
           axis: 1

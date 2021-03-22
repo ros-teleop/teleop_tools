@@ -155,8 +155,8 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
             # Now check that the mappings have all of the required configuration.
             for mapping, values in self.axis_mappings.items():
                 if 'axis' not in values and 'button' not in values and 'value' not in values:
-                    raise JoyTeleopException("Axis mapping for '{}' must have an axis, button, or value"
-                                             .format(name))
+                    raise JoyTeleopException("Axis mapping for '{}' must have an axis, button, "
+                                             'or value'.format(name))
 
                 if 'axis' in values:
                     if 'offset' not in values:

@@ -45,12 +45,12 @@ import os
 import signal
 import time
 
-from std_msgs.msg import Header
 from geometry_msgs.msg import Twist, TwistStamped
 import rclpy
 from rclpy.duration import Duration
 from rclpy.node import Node
 from rclpy.qos import qos_profile_system_default
+from std_msgs.msg import Header
 
 
 class Velocity(object):
@@ -130,7 +130,8 @@ class SimpleKeyTeleop(Node):
         self._publish_stamped_twist = self.declare_parameter('twist_stamped_enabled', False).value
 
         if self._publish_stamped_twist:
-            self._pub_cmd = self.create_publisher(TwistStamped, 'key_vel', qos_profile_system_default)
+            self._pub_cmd = self.create_publisher(TwistStamped, 'key_vel',
+                                                  qos_profile_system_default)
         else:
             self._pub_cmd = self.create_publisher(Twist, 'key_vel', qos_profile_system_default)
 
@@ -173,7 +174,7 @@ class SimpleKeyTeleop(Node):
         twist_stamped = TwistStamped()
         header = Header()
         header.stamp = rclpy.clock.Clock().now().to_msg()
-        header.frame_id = "key_teleop"
+        header.frame_id = 'key_teleop'
 
         twist_stamped.header = header
         twist_stamped.twist.linear.x = linear

@@ -2,6 +2,9 @@
 Changelog for package teleop_tools
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 0.4.0 (2020-06-04)
 ------------------
 * Bump CMake version to avoid CMP0048

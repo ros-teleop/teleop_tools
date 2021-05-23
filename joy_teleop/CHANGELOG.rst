@@ -2,6 +2,11 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix missing exec_depend rosservice
+* Contributors: Jeremie Deray
+
 0.4.0 (2020-06-04)
 ------------------
 * Fix iteritems and dependency in python3

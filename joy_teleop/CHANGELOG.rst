@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.4.1 (2021-05-23)
+------------------
 * Fix missing exec_depend rosservice
 * Contributors: Jeremie Deray
 

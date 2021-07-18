@@ -27,7 +27,7 @@ def generate_launch_description():
     )
 
     mouse_teleop = launch_ros.actions.Node(
-            package='mouse_teleop', node_executable='mouse_teleop',
+            package='mouse_teleop', executable='mouse_teleop',
             parameters=[parameters_file])
 
     return LaunchDescription([mouse_teleop])

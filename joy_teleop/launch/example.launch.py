@@ -37,11 +37,11 @@ def generate_launch_description():
     ])
 
     ld.add_action(launch_ros.actions.Node(
-            package='joy_teleop', node_executable='joy_teleop',
+            package='joy_teleop', executable='joy_teleop',
             parameters=[launch.substitutions.LaunchConfiguration('teleop_config')]))
 
     ld.add_action(launch_ros.actions.Node(
-            package='joy_teleop', node_executable='incrementer_server',
-            node_name='incrementer', node_namespace='torso_controller'))
+            package='joy_teleop', executable='incrementer_server',
+            name='incrementer', namespace='torso_controller'))
 
     return ld

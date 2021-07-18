@@ -120,19 +120,15 @@ class JoyTeleopCommand:
 
         self.active = len(active_buttons) != 0 or len(active_axes) != 0
 
-        for axis in self.axes:
-            try:
-                self.active |= joy_state.axes[axis] == 1.0
-            except IndexError:
-                # An index error can occur if this command is configured for multiple buttons
-                # like (0, 10), but the length of the joystick buttons is only 1.  Ignore these.
-                pass
+        return active_buttons, active_axes
 
 
 class JoyTeleopTopicCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config.get('deadman_buttons', []), config.get('deadman_axes', []))
+        self.deadman_buttons = config.get('deadman_buttons', [])
+        self.deadman_axes = config.get('deadman_axes', [])
+        super().__init__(name, self.deadman_buttons, self.deadman_axes)
 
         self.topic_type = get_interface_type(config['interface_type'], 'msg')
 
@@ -186,11 +182,21 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
         #     continue to be published without debouncing.
 
         last_active = self.active
-        self.update_active_from_buttons_and_axes(joy_state)
+        active_buttons, active_axes = self.update_active_from_buttons_and_axes(joy_state)
         if not self.active:
             return
         if self.msg_value is not None and last_active == self.active:
             return
+
+        if self.deadman_buttons:
+            # if all the deadman buttons are not active then return
+            if (set(self.deadman_buttons) - active_buttons) != set():
+                return
+
+        if self.deadman_axes:
+            # if all the deadman axes are not active then return
+            if (set(self.deadman_axes) - active_axes) != set():
+                return
 
         if self.msg_value is not None:
             # This is the case for a static message.

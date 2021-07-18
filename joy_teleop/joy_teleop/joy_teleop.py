@@ -72,16 +72,19 @@ def set_member(msg: typing.Any, member: str, value: typing.Any) -> None:
     setattr(target, ml[-1], value)
 
 
+def get_arr(arr, idx, default):
+    if idx < len(arr):
+        return arr[idx]
+    else:
+        return default
+
+
 class JoyTeleopCommand:
 
-    def __init__(self, name: str, config: typing.Dict[str, typing.Any],
-                 button_name: str, axes_name: str) -> None:
-        self.buttons: typing.List[str] = []
-        if button_name in config:
-            self.buttons = config[button_name]
-        self.axes: typing.List[str] = []
-        if axes_name in config:
-            self.axes = config[axes_name]
+    def __init__(self, name: str, buttons: typing.List[str], axes: typing.List[str]) -> None:
+        self.name = name
+        self.buttons: typing.List[str] = buttons
+        self.axes: typing.List[str] = axes
 
         if len(self.buttons) == 0 and len(self.axes) == 0:
             raise JoyTeleopException("No buttons or axes configured for command '{}'".format(name))
@@ -90,6 +93,7 @@ class JoyTeleopCommand:
         self.min_button = 0
         if len(self.buttons) > 0:
             self.min_button = int(min(self.buttons))
+
         self.min_axis = 0
         if len(self.axes) > 0:
             self.min_axis = int(min(self.axes))
@@ -99,21 +103,22 @@ class JoyTeleopCommand:
         # is a command-specific behavior, the base class only provides the mechanism.
         self.active = False
 
-    def update_active_from_buttons_and_axes(self, joy_state: sensor_msgs.msg.Joy) -> None:
-        self.active = False
+    def update_active_from_buttons_and_axes(self, joy_state: sensor_msgs.msg.Joy) \
+            -> typing.Tuple[typing.Set, typing.Set]:
 
-        if (self.min_button is not None and len(joy_state.buttons) <= self.min_button) and \
-           (self.min_axis is not None and len(joy_state.axes) <= self.min_axis):
+        if len(joy_state.buttons) <= self.min_button and len(joy_state.axes) <= self.min_axis:
             # Not enough buttons or axes, so it can't possibly be a message for this command.
             return
 
-        for button in self.buttons:
-            try:
-                self.active |= joy_state.buttons[button] == 1
-            except IndexError:
-                # An index error can occur if this command is configured for multiple buttons
-                # like (0, 10), but the length of the joystick buttons is only 1.  Ignore these.
-                pass
+        active_buttons = set([but for but in self.buttons
+                             if get_arr(joy_state.buttons, but, 0) == 1])
+
+        # Depending on the joystick, this detection might not work. Some axes on gamepads do not
+        # have 1.0 for the maximum value, i.e. xbox wireless shoulder triggers are 1.0 neutral
+        active_axes = set([axis for axis in self.axes
+                          if get_arr(joy_state.axes, axis, 0.0) == 1.0])
+
+        self.active = len(active_buttons) != 0 or len(active_axes) != 0
 
         for axis in self.axes:
             try:
@@ -127,9 +132,7 @@ class JoyTeleopCommand:
 class JoyTeleopTopicCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'deadman_buttons', 'deadman_axes')
-
-        self.name = name
+        super().__init__(name, config.get('deadman_buttons', []), config.get('deadman_axes', []))
 
         self.topic_type = get_interface_type(config['interface_type'], 'msg')
 
@@ -149,23 +152,13 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
         # An 'axis_mapping' takes data from one part of the message and scales and offsets it to
         # publish if an activation happens.  This is typically used to take joystick analog data
         # and republish it as a cmd_vel.  It is mutually exclusive with a 'message_value'.
-        self.axis_mappings = {}
-        if 'axis_mappings' in config:
-            self.axis_mappings = config['axis_mappings']
+        self.axis_mappings = config.get('axis_mappings', {})
+        if self.axis_mappings:
             # Now check that the mappings have all of the required configuration.
             for mapping, values in self.axis_mappings.items():
                 if 'axis' not in values and 'button' not in values and 'value' not in values:
                     raise JoyTeleopException("Axis mapping for '{}' must have an axis, button, "
                                              'or value'.format(name))
-
-                if 'axis' in values:
-                    if 'offset' not in values:
-                        raise JoyTeleopException("Axis mapping for '{}' must have an offset"
-                                                 .format(name))
-
-                    if 'scale' not in values:
-                        raise JoyTeleopException("Axis mapping for '{}' must have a scale"
-                                                 .format(name))
 
         if self.msg_value is None and not self.axis_mappings:
             raise JoyTeleopException("No 'message_value' or 'axis_mappings' "
@@ -245,9 +238,7 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
 class JoyTeleopServiceCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'buttons', 'axes')
-
-        self.name = name
+        super().__init__(name, config.get('buttons', []), config.get('axes', []))
 
         service_name = config['service_name']
 
@@ -294,9 +285,7 @@ class JoyTeleopServiceCommand(JoyTeleopCommand):
 class JoyTeleopActionCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'buttons', 'axes')
-
-        self.name = name
+        super().__init__(name, config.get('buttons', []), config.get('axes', []))
 
         action_type = get_interface_type(config['interface_type'], 'action')
 

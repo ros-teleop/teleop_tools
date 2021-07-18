@@ -152,36 +152,6 @@ class TestJoyTeleopParameterFailures(unittest.TestCase):
         self.assertEqual(joy_teleop_process.exit_code, 1)
         self.assertTrue('must have an axis, button, or value' in joy_teleop_process.output)
 
-    def test_teleop_axis_mappings_missing_offset(self):
-        parameters = {}
-        parameters['simple_message.type'] = 'topic'
-        parameters['simple_message.interface_type'] = 'std_msgs/msg/String'
-        parameters['simple_message.topic_name'] = '/simple_message_type'
-        parameters['simple_message.deadman_buttons'] = [2]
-        parameters['simple_message.axis_mappings.linear-x.axis'] = 1
-        parameters['simple_message.axis_mappings.linear-x.scale'] = 0.8
-
-        with self.launch_joy_teleop(parameters) as joy_teleop_process:
-            self.assertTrue(joy_teleop_process.wait_for_shutdown(timeout=10))
-
-        self.assertEqual(joy_teleop_process.exit_code, 1)
-        self.assertTrue('must have an offset' in joy_teleop_process.output)
-
-    def test_teleop_axis_mappings_missing_scale(self):
-        parameters = {}
-        parameters['simple_message.type'] = 'topic'
-        parameters['simple_message.interface_type'] = 'std_msgs/msg/String'
-        parameters['simple_message.topic_name'] = '/simple_message_type'
-        parameters['simple_message.deadman_buttons'] = [2]
-        parameters['simple_message.axis_mappings.linear-x.axis'] = 1
-        parameters['simple_message.axis_mappings.linear-x.offset'] = 0.0
-
-        with self.launch_joy_teleop(parameters) as joy_teleop_process:
-            self.assertTrue(joy_teleop_process.wait_for_shutdown(timeout=10))
-
-        self.assertEqual(joy_teleop_process.exit_code, 1)
-        self.assertTrue('must have a scale' in joy_teleop_process.output)
-
     def test_teleop_invalid_message_fields(self):
         parameters = {}
         parameters['simple_message.type'] = 'topic'

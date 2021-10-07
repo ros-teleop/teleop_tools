@@ -134,9 +134,8 @@ class MouseTeleop(Node):
         # If frequency is positive, use synchronous publishing mode:
         if self._frequency > 0.0:
             # Create timer for the given frequency to publish the twist:
-            period = 1.0 / self._frequency
-
-            self._timer = self.create_timer(period, self._publish_twist)
+            self._period = int(1000 / self._frequency)
+            self._root.after(self._period, self._publish_twist)
 
         # Handle ctrl+c on the window
         self._root.bind('<Control-c>', self._quit)
@@ -246,6 +245,7 @@ class MouseTeleop(Node):
 
     def _publish_twist(self):
         self._send_motion()
+        self._root.after(self._period, self._publish_twist)
 
     def _relative_motion(self, x, y):
         dx = self._x - x

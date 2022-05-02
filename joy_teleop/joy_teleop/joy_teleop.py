@@ -32,9 +32,9 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import array
 import importlib
 import typing
-import array
 
 import rclpy
 from rclpy.action import ActionClient
@@ -72,6 +72,7 @@ def get_parent_member(msg: typing.Any, member: str) -> typing.Tuple[typing.Any, 
         target = getattr(target, i)
 
     return target, ml[-1]
+
 
 class JoyTeleopCommand:
 

@@ -247,7 +247,11 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
                         while len(field_list) <= index_el:
                             # complete
                             field_list.append(0)
-                        field_list[index_el] = val
+                        if isinstance(field_list, list):
+                            field_list[index_el] = val
+                        else:
+                            # array.array: use first element which has correct type to cast
+                            field_list[index_el] = type(field_list[0])(val)
                     else:
                         setattr(parent, sub_field_name, val)
 

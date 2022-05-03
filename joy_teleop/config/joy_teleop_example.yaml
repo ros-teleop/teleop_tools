@@ -82,6 +82,27 @@ joy_teleop:
             - 4
             - 2
 
+    array3:
+      type: topic
+      interface_type: std_msgs/msg/UInt8MultiArray
+      topic_name: array3
+      axis_mappings:
+        data:
+          index: 0
+          axis: 0
+          scale: 1
+          offset: 0
+        data-:
+          index: 1
+          axis: 1
+          scale: 1
+          offset: 0
+        data--:
+          index: 2
+          axis: 2
+          scale: 1
+          offset: 0
+
     torso_up:
       type: action
       interface_type: teleop_tools_msgs/action/Increment

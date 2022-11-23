@@ -2,8 +2,8 @@
 Changelog for package key_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.3.0 (2022-11-23)
+------------------
 * Fix some warnings from tests.
   In here are some flake8 fixes and fixes to the joy_teleop tests
   now that some of the error messages have changed.

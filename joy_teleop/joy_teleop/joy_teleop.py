@@ -32,6 +32,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
+import array
 import importlib
 import typing
 
@@ -62,14 +63,15 @@ def get_interface_type(type_name: str, interface_type: str) -> typing.Any:
     return getattr(mod, message)
 
 
-def set_member(msg: typing.Any, member: str, value: typing.Any) -> None:
-    ml = member.split('-')
+def get_parent_member(msg: typing.Any, member: str) -> typing.Tuple[typing.Any, str]:
+    ml = member.strip('-').split('-')
     if len(ml) < 1:
         return
     target = msg
     for i in ml[:-1]:
         target = getattr(target, i)
-    setattr(target, ml[-1], value)
+
+    return target, ml[-1]
 
 
 class JoyTeleopCommand:
@@ -144,7 +146,10 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
             # config can't work.
             self.msg_value = self.topic_type()
             for target, param in msg_config.items():
-                set_member(self.msg_value, target, param['value'])
+                res = get_parent_member(self.msg_value, target)
+                if res:
+                    parent, attr_name = res
+                    setattr(parent, attr_name, param['value'])
 
         # An 'axis_mapping' takes data from one part of the message and scales and offsets it to
         # publish if an activation happens.  This is typically used to take joystick analog data
@@ -233,7 +238,22 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
                         'No Supported axis_mappings type found in: {}'.format(mapping))
                     val = 0.0
 
-                set_member(msg, mapping, val)
+                res = get_parent_member(msg, mapping)
+                if res:
+                    parent, sub_field_name = res
+                    if isinstance(getattr(parent, sub_field_name), (list, array.array)):
+                        index_el = values.get('index', 0)
+                        field_list = getattr(parent, sub_field_name)
+                        while len(field_list) <= index_el:
+                            # complete
+                            field_list.append(0)
+                        if isinstance(field_list, list):
+                            field_list[index_el] = val
+                        else:
+                            # array.array: use first element which has correct type to cast
+                            field_list[index_el] = type(field_list[0])(val)
+                    else:
+                        setattr(parent, sub_field_name, val)
 
         # If there is a stamp field, fill it with now().
         if hasattr(msg, 'header'):

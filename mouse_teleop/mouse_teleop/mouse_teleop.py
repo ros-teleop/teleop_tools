@@ -131,12 +131,14 @@ class MouseTeleop(Node):
 
         self._canvas.pack()
 
-        # If frequency is positive, use synchronous publishing mode:
+        # If frequency is positive, initialize the `_period`
+        # field. The Tkinter event loop will be used to periodically
+        # send messages while the mouse button is down.
+        self._publish_handle = None
         if self._frequency > 0.0:
-            # Create timer for the given frequency to publish the twist:
-            period = 1.0 / self._frequency
-
-            self._timer = self.create_timer(period, self._publish_twist)
+            self._period = int(1000 / self._frequency)
+        else:
+            self._period = None
 
         # Handle ctrl+c on the window
         self._root.bind('<Control-c>', self._quit)
@@ -167,10 +169,17 @@ class MouseTeleop(Node):
 
         self._v_x = self._v_y = self._w = 0.0
 
+        if self._period is not None:
+            self._publish_handle = self._root.after(self._period, self._publish_twist)
+
     def _release(self, event):
         self._v_x = self._v_y = self._w = 0.0
 
         self._send_motion()
+
+        if self._publish_handle is not None:
+            self._root.after_cancel(self._publish_handle)
+            self._publish_handle = None
 
     def _configure(self, event):
         self._width, self._height = event.height, event.width
@@ -246,6 +255,7 @@ class MouseTeleop(Node):
 
     def _publish_twist(self):
         self._send_motion()
+        self._publish_handle = self._root.after(self._period, self._publish_twist)
 
     def _relative_motion(self, x, y):
         dx = self._x - x

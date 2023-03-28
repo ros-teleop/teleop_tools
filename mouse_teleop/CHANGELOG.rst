@@ -2,6 +2,9 @@
 Changelog for package mouse_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.3.0 (2022-11-23)
 ------------------
 * launch: fix deprecated attributes

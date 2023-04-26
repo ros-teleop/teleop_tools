@@ -139,7 +139,7 @@ class JoyTeleop:
         for b in self.command_list[c]['buttons']:
             if b < 0 or len(buttons) <= b or buttons[b] != 1:
                 return False
-        return sum(buttons) >= len(self.command_list[c]['buttons'])
+        return sum(buttons) == len(self.command_list[c]['buttons'])
 
     def add_command(self, name, command):
         """Add a command to the command list"""

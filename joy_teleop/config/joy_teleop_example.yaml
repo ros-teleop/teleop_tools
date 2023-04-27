@@ -72,6 +72,9 @@ teleop:
       -
         target: linear.y
         value: 0.0
+    # We don't want to have the walk buttons pressed
+    # to avoid publishing with different intentions
+    allow_multiple_commands: False
 
   hello:
     type: topic

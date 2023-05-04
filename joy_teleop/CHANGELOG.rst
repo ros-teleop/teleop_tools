@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+0.5.0 (2023-05-04)
+------------------
 * When allow_multiple_commands is True, Use AND operation with match_command instead of OR operation (`#82 <https://github.com/ros-teleop/teleop_tools/issues/82>`_)
   * Use AND operation with match_command instead of OR operation
   * added allow_multiple_commands parameter to have some control over the joystick combinations

@@ -139,7 +139,10 @@ class JoyTeleop:
         for b in self.command_list[c]['buttons']:
             if b < 0 or len(buttons) <= b or buttons[b] != 1:
                 return False
-        return sum(buttons) >= len(self.command_list[c]['buttons'])
+        if self.command_list[c]['allow_combinations']:
+            return sum(buttons) >= len(self.command_list[c]['buttons'])
+        else:
+            return sum(buttons) == len(self.command_list[c]['buttons'])
 
     def add_command(self, name, command):
         """Add a command to the command list"""
@@ -153,6 +156,7 @@ class JoyTeleop:
         elif command['type'] == 'service':
             if 'service_request' not in command:
                 command['service_request'] = {}
+        command['allow_combinations'] = command.get('allow_multiple_commands', True)
         self.command_list[name] = command
 
     def run_command(self, command, joy_state):

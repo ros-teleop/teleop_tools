@@ -30,6 +30,7 @@ joy_teleop:
       interface_type: geometry_msgs/msg/Wrench
       topic_name: base_link_wrench
       deadman_buttons: [5, 7]
+      deadman_behavior: all
       axis_mappings:
         force-x:
           axis: 3

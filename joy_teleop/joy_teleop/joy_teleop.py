@@ -75,16 +75,28 @@ def set_member(msg: typing.Any, member: str, value: typing.Any) -> None:
 class JoyTeleopCommand:
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any],
-                 button_name: str, axes_name: str) -> None:
+                 button_name: str, axes_name: str, behavior: str, node: Node) -> None:
+        self.node: Node = node
         self.buttons: typing.List[str] = []
         if button_name in config:
             self.buttons = config[button_name]
         self.axes: typing.List[str] = []
         if axes_name in config:
             self.axes = config[axes_name]
+        self.behavior: str = ''
+        if behavior in config:
+            self.behavior = config[behavior]
 
         if len(self.buttons) == 0 and len(self.axes) == 0:
-            raise JoyTeleopException("No buttons or axes configured for command '{}'".format(name))
+            raise JoyTeleopException(f"No buttons or axes configured for command '{name}'")
+
+        if self.behavior == '':
+            node.get_logger().warn(f'No button behavior was defined for "{name}".')
+            self. behavior = 'any'
+        if self.behavior not in ['any', 'all']:
+            node.get_logger().warn(f'Unknown button behavior "{self.behavior}" for "{name}".')
+            self. behavior = 'any'
+        node.get_logger().info(f'Button behavior set to "{self.behavior}" for "{name}".')
 
         # Used to short-circuit the run command if there aren't enough buttons in the message.
         self.min_button = 0
@@ -100,7 +112,7 @@ class JoyTeleopCommand:
         self.active = False
 
     def update_active_from_buttons_and_axes(self, joy_state: sensor_msgs.msg.Joy) -> None:
-        self.active = False
+        self.active = self.behavior == 'all'
 
         if (self.min_button is not None and len(joy_state.buttons) <= self.min_button) and \
            (self.min_axis is not None and len(joy_state.axes) <= self.min_axis):
@@ -109,7 +121,10 @@ class JoyTeleopCommand:
 
         for button in self.buttons:
             try:
-                self.active |= joy_state.buttons[button] == 1
+                if self.behavior == 'all':
+                    self.active &= joy_state.buttons[button] == 1
+                elif self.behavior == 'any':
+                    self.active |= joy_state.buttons[button] == 1
             except IndexError:
                 # An index error can occur if this command is configured for multiple buttons
                 # like (0, 10), but the length of the joystick buttons is only 1.  Ignore these.
@@ -127,7 +142,7 @@ class JoyTeleopCommand:
 class JoyTeleopTopicCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'deadman_buttons', 'deadman_axes')
+        super().__init__(name, config, 'deadman_buttons', 'deadman_axes', 'deadman_behavior', node)
 
         self.name = name
 
@@ -245,7 +260,7 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
 class JoyTeleopServiceCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'buttons', 'axes')
+        super().__init__(name, config, 'buttons', 'axes', 'deadman_behavior', node)
 
         self.name = name
 
@@ -294,7 +309,7 @@ class JoyTeleopServiceCommand(JoyTeleopCommand):
 class JoyTeleopActionCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'buttons', 'axes')
+        super().__init__(name, config, 'buttons', 'axes', 'deadman_behavior', node)
 
         self.name = name
 

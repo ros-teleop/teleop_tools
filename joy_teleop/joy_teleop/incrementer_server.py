@@ -69,7 +69,7 @@ class IncrementerServer(Node):
             JointTrajectory, 'joint_trajectory', 1)
 
         self._state_sub = self.create_subscription(
-            JTCS, 'state', self._state_cb, 1, callback_group=cb_group)
+            JTCS, 'controller_state', self._state_cb, 1, callback_group=cb_group)
 
         self._goal = JointTrajectory()
         self.get_logger().info('Connected to {}'.format(self.get_namespace()))

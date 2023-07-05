@@ -95,7 +95,7 @@ class IncrementerServer(Node):
     def increment_by(self, increment):
         state = self._wait_for_new_message()
         self._goal.joint_names = state.joint_names
-        self._value = state.actual.positions
+        self._value = state.feedback.positions
         self._value = [x + y for x, y in zip(self._value, increment)]
         self.get_logger().info('Sent goal of {}'.format(self._value))
         point = JointTrajectoryPoint()

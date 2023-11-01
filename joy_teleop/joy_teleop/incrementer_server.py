@@ -69,7 +69,7 @@ class IncrementerServer(Node):
             JointTrajectory, 'joint_trajectory', 1)
 
         self._state_sub = self.create_subscription(
-            JTCS, 'state', self._state_cb, 1, callback_group=cb_group)
+            JTCS, 'controller_state', self._state_cb, 1, callback_group=cb_group)
 
         self._goal = JointTrajectory()
         self.get_logger().info('Connected to {}'.format(self.get_namespace()))
@@ -95,7 +95,7 @@ class IncrementerServer(Node):
     def increment_by(self, increment):
         state = self._wait_for_new_message()
         self._goal.joint_names = state.joint_names
-        self._value = state.actual.positions
+        self._value = state.feedback.positions
         self._value = [x + y for x, y in zip(self._value, increment)]
         self.get_logger().info('Sent goal of {}'.format(self._value))
         point = JointTrajectoryPoint()

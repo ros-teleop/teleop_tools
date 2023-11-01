@@ -2,6 +2,11 @@
 Changelog for package mouse_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* replace deprecated dash by underscore (`#85 <https://github.com/ros-teleop/teleop_tools/issues/85>`_)
+* Contributors: Noel Jiménez García
+
 1.4.0 (2023-03-28)
 ------------------
 

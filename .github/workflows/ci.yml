@@ -8,19 +8,17 @@ on:
 
 jobs:
   ci:
-    name: Foxy source job
-    runs-on: ubuntu-20.04
+    name: Rolling source job
+    runs-on: ubuntu-22.04
     strategy:
       fail-fast: false
     steps:
-      - uses: ros-tooling/setup-ros@v0.1
+      - uses: ros-tooling/setup-ros@v0.6
         with:
-          required-ros-distributions: foxy
-      # workaround
-      - run: sudo RTI_NC_LICENSE_ACCEPTED=yes apt-get install -y rti-connext-dds-5.3.1
+          required-ros-distributions: rolling
       - uses: ros-tooling/action-ros-ci@v0.1
         with:
-          target-ros2-distro: foxy
+          target-ros2-distro: rolling
           # build all packages listed in the meta package
           package-name:
             joy_teleop
@@ -28,14 +26,12 @@ jobs:
             mouse_teleop
             teleop_tools
             teleop_tools_msgs
-          colcon-mixin-name: coverage-gcc
-          colcon-mixin-repository: https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v3
         with:
           file: ros_ws/lcov/total_coverage.info
           flags: unittests
           name: codecov-umbrella
-      - uses: actions/upload-artifact@v1
+      - uses: actions/upload-artifact@v3
         with:
           name: colcon-logs-${{ matrix.os }}
           path: ros_ws/log

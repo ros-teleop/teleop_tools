@@ -2,6 +2,18 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.3.0 (2022-11-23)
+------------------
+* launch: fix deprecated attributes
+* Fix some warnings from tests.
+  In here are some flake8 fixes and fixes to the joy_teleop tests
+  now that some of the error messages have changed.
+* Allow a `value` type within an axis mapping. Useful for frame data.
+* Add offsets to example yaml
+* add ci & lint
+* joy_teleop: convert current time to message type for timestamping
+* Contributors: AndyZe, Chris Lalancette, Kazunari Tanaka, Marcel Zeilinger, Russ Webber
+
 1.2.1 (2020-10-29)
 ------------------
 

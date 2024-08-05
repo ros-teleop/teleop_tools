@@ -33,8 +33,8 @@
 # POSSIBILITY OF SUCH DAMAGE.
 
 from joy_teleop_testing_common import generate_joy_test_description, TestJoyTeleop
-from std_msgs.msg import UInt8MultiArray
 import pytest
+from std_msgs.msg import UInt8MultiArray
 import rclpy
 
 

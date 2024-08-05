@@ -34,9 +34,8 @@
 
 from joy_teleop_testing_common import generate_joy_test_description, TestJoyTeleop
 import pytest
-from std_msgs.msg import UInt8MultiArray
 import rclpy
-
+from std_msgs.msg import UInt8MultiArray
 
 
 @pytest.mark.rostest

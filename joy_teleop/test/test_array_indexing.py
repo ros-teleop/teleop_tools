@@ -32,11 +32,11 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import pytest
-import rclpy
-
 from joy_teleop_testing_common import generate_joy_test_description, TestJoyTeleop
 from std_msgs.msg import UInt8MultiArray
+
+import pytest
+import rclpy
 
 
 @pytest.mark.rostest

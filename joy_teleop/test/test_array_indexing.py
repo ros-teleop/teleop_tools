@@ -34,9 +34,9 @@
 
 import pytest
 import rclpy
-from std_msgs.msg import UInt8MultiArray
 
 from joy_teleop_testing_common import generate_joy_test_description, TestJoyTeleop
+from std_msgs.msg import UInt8MultiArray
 
 
 @pytest.mark.rostest
@@ -66,6 +66,7 @@ def generate_test_description():
 
 
 class ArrayIndexingMappingTestSuite(TestJoyTeleop):
+
     def publish_message(self):
         self.joy_publisher.publish(self.joy_msg)
 

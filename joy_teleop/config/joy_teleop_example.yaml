@@ -100,7 +100,7 @@ joy_teleop:
 
     fibonacci:
       type: action
-      interface_type: action_tutorials_interfaces/action/Fibonacci
+      interface_type: example_interfaces/action/Fibonacci
       action_name: fibonacci
       action_goal:
         order: 5

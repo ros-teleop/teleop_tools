@@ -215,7 +215,7 @@ class TestJoyTeleopParameterFailures(unittest.TestCase):
     def test_action_invalid_message_fields(self):
         parameters = {}
         parameters['fibonacci.type'] = 'action'
-        parameters['fibonacci.interface_type'] = 'action_tutorials_interfaces/action/Fibonacci'
+        parameters['fibonacci.interface_type'] = 'example_interfaces/action/Fibonacci'
         parameters['fibonacci.action_name'] = '/fibonacci'
         parameters['fibonacci.buttons'] = [2]
         parameters['fibonacci.action_goal'] = {'foo': 5}

@@ -32,7 +32,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import action_tutorials_interfaces.action
+import example_interfaces.action
 from joy_teleop_testing_common import generate_joy_test_description, TestJoyTeleop
 import pytest
 import rclpy
@@ -42,7 +42,7 @@ import rclpy
 def generate_test_description():
     parameters = {}
     parameters['fibonacci.type'] = 'action'
-    parameters['fibonacci.interface_type'] = 'action_tutorials_interfaces/action/Fibonacci'
+    parameters['fibonacci.interface_type'] = 'example_interfaces/action/Fibonacci'
     parameters['fibonacci.action_name'] = '/fibonacci'
     parameters['fibonacci.buttons'] = [2]
     parameters['fibonacci.action_goal'] = {'order': 5}
@@ -69,14 +69,14 @@ class TestJoyTeleopActionFibonacci(TestJoyTeleop):
                 sequence.append(sequence[i] + sequence[i-1])
 
             goal_handle.succeed()
-            result = action_tutorials_interfaces.action.Fibonacci.Result()
+            result = example_interfaces.action.Fibonacci.Result()
             result.sequence = sequence
             future.set_result(True)
             return result
 
         action_server = rclpy.action.ActionServer(
             self.node,
-            action_tutorials_interfaces.action.Fibonacci,
+            example_interfaces.action.Fibonacci,
             'fibonacci',
             fibonacci_callback)
 

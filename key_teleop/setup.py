@@ -10,7 +10,7 @@ share_path = os.path.join('share', package_name)
 
 setup(
     name=package_name,
-    version='1.5.0',
+    version='1.5.1',
     packages=find_packages(exclude=['test']),
     data_files=[
         (share_path, ['package.xml']),

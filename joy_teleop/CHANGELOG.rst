@@ -2,6 +2,11 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Removed action tutorials interfaces dependency (`#88 <https://github.com/ros-teleop/teleop_tools/issues/88>`_)
+* Contributors: Alejandro Hernández Cordero
+
 1.5.0 (2023-11-01)
 ------------------
 * Fix deprecated topics on JTC (`#86 <https://github.com/ros-teleop/teleop_tools/issues/86>`_)

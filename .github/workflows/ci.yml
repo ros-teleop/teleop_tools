@@ -2,6 +2,8 @@ name: Test teleop_tools
 on:
   pull_request:
   push:
+    branches:  
+      - master
   schedule:
     # Run every morning to detect flakiness and broken dependencies
     - cron: '17 8 * * *'

@@ -82,6 +82,30 @@ joy_teleop:
             - 4
             - 2
 
+    array3:
+      type: topic
+      interface_type: std_msgs/msg/UInt8MultiArray
+      topic_name: array3
+      deadman_buttons: [0]
+      axis_mappings:
+        data:
+          index: 0
+          axis: 0
+          scale: 1
+          offset: 0
+        # leading dash are going to be striped away, but this allows us to have the same
+        # field name (yaml doesn't allow duplicate keys)
+        data-:
+          index: 1
+          axis: 1
+          scale: 1
+          offset: 0
+        data--:
+          index: 4
+          axis: 2
+          scale: 1
+          offset: 0
+
     torso_up:
       type: action
       interface_type: teleop_tools_msgs/action/Increment
@@ -100,7 +124,7 @@ joy_teleop:
 
     fibonacci:
       type: action
-      interface_type: action_tutorials_interfaces/action/Fibonacci
+      interface_type: example_interfaces/action/Fibonacci
       action_name: fibonacci
       action_goal:
         order: 5

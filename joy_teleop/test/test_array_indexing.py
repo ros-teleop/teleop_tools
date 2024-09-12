@@ -32,64 +32,81 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import example_interfaces.action
 from joy_teleop_testing_common import generate_joy_test_description, TestJoyTeleop
 import pytest
 import rclpy
+from std_msgs.msg import UInt8MultiArray
 
 
 @pytest.mark.rostest
 def generate_test_description():
     parameters = {}
-    parameters['fibonacci.type'] = 'action'
-    parameters['fibonacci.interface_type'] = 'example_interfaces/action/Fibonacci'
-    parameters['fibonacci.action_name'] = '/fibonacci'
-    parameters['fibonacci.buttons'] = [2]
-    parameters['fibonacci.action_goal'] = {'order': 5}
+    parameters['array3.type'] = 'topic'
+    parameters['array3.interface_type'] = 'std_msgs/msg/UInt8MultiArray'
+    parameters['array3.topic_name'] = '/array3'
+    parameters['array3.deadman_buttons'] = [0]
+
+    parameters['array3.axis_mappings.data.index'] = 0
+    parameters['array3.axis_mappings.data.axis'] = 0
+    parameters['array3.axis_mappings.data.scale'] = 1
+    parameters['array3.axis_mappings.data.offset'] = 0
+
+    parameters['array3.axis_mappings.data-.index'] = 1
+    parameters['array3.axis_mappings.data-.axis'] = 1
+    parameters['array3.axis_mappings.data-.scale'] = 1
+    parameters['array3.axis_mappings.data-.offset'] = 0
+
+    parameters['array3.axis_mappings.data--.index'] = 4
+    parameters['array3.axis_mappings.data--.axis'] = 2
+    parameters['array3.axis_mappings.data--.scale'] = 1
+    parameters['array3.axis_mappings.data--.offset'] = 0
 
     return generate_joy_test_description(parameters)
 
 
-class TestJoyTeleopActionFibonacci(TestJoyTeleop):
+class ArrayIndexingMappingTestSuite(TestJoyTeleop):
 
     def publish_message(self):
         self.joy_publisher.publish(self.joy_msg)
-        self.joy_msg.buttons[2] = int(not self.joy_msg.buttons[2])
 
-    def test_simple_message(self):
-        sequence = []
+    def test_array_mapping(self):
+        array: UInt8MultiArray = None
         future = rclpy.task.Future()
 
-        def fibonacci_callback(goal_handle):
+        def receive_array(msg):
+            nonlocal array
             nonlocal future
 
-            sequence.append(0)
-            sequence.append(1)
-            for i in range(1, goal_handle.request.order):
-                sequence.append(sequence[i] + sequence[i-1])
-
-            goal_handle.succeed()
-            result = example_interfaces.action.Fibonacci.Result()
-            result.sequence = sequence
+            array = msg
             future.set_result(True)
-            return result
 
-        action_server = rclpy.action.ActionServer(
-            self.node,
-            example_interfaces.action.Fibonacci,
-            'fibonacci',
-            fibonacci_callback)
+        qos = rclpy.qos.QoSProfile(history=rclpy.qos.QoSHistoryPolicy.KEEP_LAST,
+                                   depth=1,
+                                   reliability=rclpy.qos.QoSReliabilityPolicy.RELIABLE,
+                                   durability=rclpy.qos.QoSDurabilityPolicy.VOLATILE)
+
+        array_subscriber = self.node.create_subscription(
+            UInt8MultiArray,
+            '/array3',
+            receive_array,
+            qos,
+        )
 
         try:
-            # Above we set the button to be used as '2', so here we set the '2' button active.
-            self.joy_msg.buttons = [0, 0, 1]
+            self.joy_msg.buttons = [1]  # deadman button pressed
+            self.joy_msg.axes = [1.0, 1.0, 1.0]
 
             self.executor.spin_until_future_complete(future, timeout_sec=10)
 
             # Check
             self.assertTrue(future.done() and future.result(),
-                            'Timed out waiting for action to complete')
-            self.assertEqual(sequence, [0, 1, 1, 2, 3, 5])
+                            'Timed out waiting for array topic to complete')
+            self.assertSequenceEqual(array.data, [1, 1, 0, 0, 1])
+
         finally:
             # Cleanup
-            action_server.destroy()
+            self.node.destroy_subscription(array_subscriber)
+
+
+if __name__ == '__main__':
+    pytest.main()

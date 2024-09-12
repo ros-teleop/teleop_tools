@@ -2,6 +2,12 @@
 Changelog for package mouse_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.3.0 (2022-11-23)
+------------------
+* launch: fix deprecated attributes
+* add ci & lint
+* Contributors: Kazunari Tanaka, Russ Webber
+
 1.2.1 (2020-10-29)
 ------------------
 * Use the python3-* rosdep keys.

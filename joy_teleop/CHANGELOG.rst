@@ -2,8 +2,8 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+1.6.0 (2024-10-01)
+------------------
 * Extend mapping to index of an array (`#76 <https://github.com/ros-teleop/teleop_tools/issues/76>`_)
 * Contributors: El Jawad Alaa
 

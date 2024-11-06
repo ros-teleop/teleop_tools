@@ -2,6 +2,9 @@
 Changelog for package mouse_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.6.0 (2024-10-01)
 ------------------
 * Do periodic publishing on tkinter loop instead of ROS timer. (`#72 <https://github.com/ros-teleop/teleop_tools/issues/72>`_)

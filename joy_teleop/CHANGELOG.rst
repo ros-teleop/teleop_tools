@@ -2,6 +2,15 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Fix excessive cpu consumption (`#92 <https://github.com/ros-teleop/teleop_tools/issues/92>`_)
+  * Fix excessive cpu consumption
+  * Reorder imports
+  ---------
+  Co-authored-by: Isaac Acevedo <isaac.acevedo@pal-robotics.com>
+* Contributors: Isaac Acevedo
+
 1.6.0 (2024-10-01)
 ------------------
 * Extend mapping to index of an array (`#76 <https://github.com/ros-teleop/teleop_tools/issues/76>`_)

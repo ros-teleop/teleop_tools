@@ -43,10 +43,10 @@
 
 from control_msgs.msg import JointTrajectoryControllerState as JTCS
 import rclpy
-from rclpy.wait_for_message import wait_for_message
 from rclpy.action import ActionServer
 from rclpy.duration import Duration
 from rclpy.node import Node
+from rclpy.wait_for_message import wait_for_message
 from teleop_tools_msgs.action import Increment as TTIA
 from trajectory_msgs.msg import JointTrajectory, JointTrajectoryPoint
 

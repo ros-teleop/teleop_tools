@@ -6,6 +6,8 @@ joy_teleop:
       interface_type: geometry_msgs/msg/TwistStamped
       topic_name: cmd_vel
       deadman_buttons: [4]
+      #deadman_axes: [0]
+      #deadman_axes_negative: [1]
       axis_mappings:
         linear-x:
           axis: 1
@@ -30,6 +32,8 @@ joy_teleop:
       interface_type: geometry_msgs/msg/Wrench
       topic_name: base_link_wrench
       deadman_buttons: [5, 7]
+      #deadman_axes: [0]
+      #deadman_axes_negative: [1]
       axis_mappings:
         force-x:
           axis: 3
@@ -45,6 +49,8 @@ joy_teleop:
       interface_type: geometry_msgs/msg/Twist
       topic_name: cmd_vel
       deadman_buttons: [0, 2]
+      #deadman_axes: [0]
+      #deadman_axes_negative: [1]
       message_value:
         linear-x:
           value: 0.0
@@ -58,6 +64,8 @@ joy_teleop:
       interface_type: std_msgs/msg/String
       topic_name: chatter
       deadman_buttons: [2]
+      #deadman_axes: [0]
+      #deadman_axes_negative: [1]
       message_value:
         data:
           value: 'Hello'
@@ -67,6 +75,8 @@ joy_teleop:
       interface_type: std_msgs/msg/UInt8MultiArray
       topic_name: bytes
       deadman_buttons: [5]
+      #deadman_axes: [0]
+      #deadman_axes_negative: [1]
       message_value:
         data:
           value: [1,3,3,7]
@@ -76,6 +86,8 @@ joy_teleop:
       interface_type: std_msgs/msg/UInt8MultiArray
       topic_name: bytes
       deadman_buttons: [3]
+      #deadman_axes: [0]
+      #deadman_axes_negative: [1]
       message_value:
         data:
           value:
@@ -87,6 +99,8 @@ joy_teleop:
       interface_type: std_msgs/msg/UInt8MultiArray
       topic_name: array3
       deadman_buttons: [0]
+      #deadman_axes: [0]
+      #deadman_axes_negative: [1]
       axis_mappings:
         data:
           index: 0
@@ -113,6 +127,26 @@ joy_teleop:
       action_goal:
         increment_by: [0.05]
       buttons: [4]
+      # axes: [4]
+      # axes_negative: [5]
+
+    torso_up_axes:
+      type: action
+      interface_type: teleop_tools_msgs/action/Increment
+      action_name: torso_controller/increment
+      action_goal:
+        increment_by: [0.05]
+      buttons: [4]
+      axes: [5]
+
+    torso_down_axes_negative:
+      type: action
+      interface_type: teleop_tools_msgs/action/Increment
+      action_name: torso_controller/increment
+      action_goal:
+        increment_by: [-0.05]
+      buttons: [4]
+      axes_negative: [5]
 
     torso_down:
       type: action
@@ -121,6 +155,8 @@ joy_teleop:
       action_goal:
         increment_by: [-0.05]
       buttons: [6]
+      # axes: [4]
+      # axes_negative: [5]
 
     fibonacci:
       type: action
@@ -129,6 +165,8 @@ joy_teleop:
       action_goal:
         order: 5
       buttons: [4, 5, 6, 7]
+      # axes: [4]
+      # axes_negative: [5]
 
     add_two_ints:
       type: service
@@ -138,3 +176,5 @@ joy_teleop:
         a: 11
         b: 31
       buttons: [10]
+      # axes: [4]
+      # axes_negative: [5]

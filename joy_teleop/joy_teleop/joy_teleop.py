@@ -77,16 +77,22 @@ def get_parent_member(msg: typing.Any, member: str) -> typing.Tuple[typing.Any, 
 class JoyTeleopCommand:
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any],
-                 button_name: str, axes_name: str) -> None:
+                 button_name: str, axes_name: str, axes_name_negative: str) -> None:
+
         self.buttons: typing.List[str] = []
         if button_name in config:
             self.buttons = config[button_name]
         self.axes: typing.List[str] = []
         if axes_name in config:
             self.axes = config[axes_name]
+        self.axes_negative: typing.List[str] = []
+        if axes_name_negative in config:
+            self.axes_negative = config[axes_name_negative]
 
-        if len(self.buttons) == 0 and len(self.axes) == 0:
-            raise JoyTeleopException("No buttons or axes configured for command '{}'".format(name))
+        if len(self.buttons) == 0 and len(self.axes) == 0 and len(self.axes_negative) == 0:
+            raise JoyTeleopException(
+                "No buttons, axes or negative_axes configured for command '{}'".format(name)
+            )
 
         # Used to short-circuit the run command if there aren't enough buttons in the message.
         self.min_button = 0
@@ -95,6 +101,9 @@ class JoyTeleopCommand:
         self.min_axis = 0
         if len(self.axes) > 0:
             self.min_axis = int(min(self.axes))
+        self.min_negative_axis = 0
+        if len(self.axes_negative) > 0:
+            self.min_negative_axis = int(min(self.axes_negative))
 
         # This can be used to "debounce" the message; if there are multiple presses of the buttons
         # or axes, the command may only activate on the first one until it toggles again.  But this
@@ -105,7 +114,8 @@ class JoyTeleopCommand:
         self.active = True
 
         if (self.min_button is not None and len(joy_state.buttons) <= self.min_button) and \
-           (self.min_axis is not None and len(joy_state.axes) <= self.min_axis):
+           (self.min_axis is not None and len(joy_state.axes) <= self.min_axis) and \
+           (self.min_negative_axis is not None and len(joy_state.axes) <= self.min_negative_axis):
             # Not enough buttons or axes, so it can't possibly be a message for this command.
             return
 
@@ -125,11 +135,18 @@ class JoyTeleopCommand:
                 # like (0, 10), but the length of the joystick buttons is only 1.  Ignore these.
                 pass
 
+        for negative_axis in self.axes_negative:
+            try:
+                self.active &= joy_state.axes[negative_axis] == -1.0
+            except IndexError:
+                # An index error can occur if this command is configured for multiple buttons
+                # like (0, 10), but the length of the joystick buttons is only 1.  Ignore these.
+                pass
 
 class JoyTeleopTopicCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'deadman_buttons', 'deadman_axes')
+        super().__init__(name, config, 'deadman_buttons', 'deadman_axes', 'deadman_axes_negative')
 
         self.name = name
 
@@ -265,7 +282,7 @@ class JoyTeleopTopicCommand(JoyTeleopCommand):
 class JoyTeleopServiceCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'buttons', 'axes')
+        super().__init__(name, config, 'buttons', 'axes', 'axes_negative')
 
         self.name = name
 
@@ -314,7 +331,7 @@ class JoyTeleopServiceCommand(JoyTeleopCommand):
 class JoyTeleopActionCommand(JoyTeleopCommand):
 
     def __init__(self, name: str, config: typing.Dict[str, typing.Any], node: Node) -> None:
-        super().__init__(name, config, 'buttons', 'axes')
+        super().__init__(name, config, 'buttons', 'axes', 'axes_negative')
 
         self.name = name
 

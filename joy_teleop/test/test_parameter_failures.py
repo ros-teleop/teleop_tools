@@ -102,8 +102,8 @@ class TestJoyTeleopParameterFailures(unittest.TestCase):
             self.assertTrue(joy_teleop_process.wait_for_shutdown(timeout=10))
 
         self.assertEqual(joy_teleop_process.exit_code, 1)
-        self.assertTrue('JoyTeleopException: No buttons, axes or negative_axes configured for command '
-                        in joy_teleop_process.output)
+        self.assertTrue('JoyTeleopException: No buttons, axes or negative_axes '
+                        'configured for command ' in joy_teleop_process.output)
 
     def test_teleop_no_message_value_or_axis_mappings(self):
         parameters = {}

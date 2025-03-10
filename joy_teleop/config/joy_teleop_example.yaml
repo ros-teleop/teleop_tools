@@ -1,11 +1,59 @@
 joy_teleop:
   ros__parameters:
 
-    walk:
+    walk_button:
       type: topic
       interface_type: geometry_msgs/msg/TwistStamped
       topic_name: cmd_vel
       deadman_buttons: [4]
+      axis_mappings:
+        linear-x:
+          axis: 1
+          scale: 0.5
+          offset: -0.03
+        angular-z:
+          axis: 0
+          scale: 0.5
+          offset: 0
+        linear-y:
+          axis: 2
+          scale: 0.3
+          offset: 0
+        linear-z:
+          button: 2
+          scale: 3.0
+        header-frame_id:
+          value: 'my_tf_frame'
+
+    walk_axes:
+      type: topic
+      interface_type: geometry_msgs/msg/TwistStamped
+      topic_name: cmd_vel
+      deadman_axes: [0]
+      axis_mappings:
+        linear-x:
+          axis: 1
+          scale: 0.5
+          offset: -0.03
+        angular-z:
+          axis: 0
+          scale: 0.5
+          offset: 0
+        linear-y:
+          axis: 2
+          scale: 0.3
+          offset: 0
+        linear-z:
+          button: 2
+          scale: 3.0
+        header-frame_id:
+          value: 'my_tf_frame'
+
+    walk_negative_axes:
+      type: topic
+      interface_type: geometry_msgs/msg/TwistStamped
+      topic_name: cmd_vel
+      deadman_axes_negative: [1]
       axis_mappings:
         linear-x:
           axis: 1
@@ -114,6 +162,49 @@ joy_teleop:
         increment_by: [0.05]
       buttons: [4]
 
+    torso_up_axes:
+      type: action
+      interface_type: teleop_tools_msgs/action/Increment
+      action_name: torso_controller/increment
+      action_goal:
+        increment_by: [0.05]
+      axes: [5]
+
+    torso_up_buttons_axes:
+      type: action
+      interface_type: teleop_tools_msgs/action/Increment
+      action_name: torso_controller/increment
+      action_goal:
+        increment_by: [0.05]
+      buttons: [4]
+      axes: [5]
+
+    torso_down_axes_negative:
+      type: action
+      interface_type: teleop_tools_msgs/action/Increment
+      action_name: torso_controller/increment
+      action_goal:
+        increment_by: [-0.05]
+      axes_negative: [5]
+
+    torso_down_axes_axes_negative:
+      type: action
+      interface_type: teleop_tools_msgs/action/Increment
+      action_name: torso_controller/increment
+      action_goal:
+        increment_by: [-0.05]
+      axes: [4]
+      axes_negative: [5]
+
+    torso_down_buttons_axes_negative:
+      type: action
+      interface_type: teleop_tools_msgs/action/Increment
+      action_name: torso_controller/increment
+      action_goal:
+        increment_by: [-0.05]
+      buttons: [4]
+      axes_negative: [5]
+
     torso_down:
       type: action
       interface_type: teleop_tools_msgs/action/Increment
@@ -138,3 +229,21 @@ joy_teleop:
         a: 11
         b: 31
       buttons: [10]
+
+    add_two_ints_axes:
+      type: service
+      interface_type: example_interfaces/srv/AddTwoInts
+      service_name: add_two_ints
+      service_request:
+        a: 11
+        b: 31
+      axes: [4]
+
+    add_two_ints_axes_negative:
+      type: service
+      interface_type: example_interfaces/srv/AddTwoInts
+      service_name: add_two_ints
+      service_request:
+        a: 11
+        b: 31
+      axes_negative: [5]

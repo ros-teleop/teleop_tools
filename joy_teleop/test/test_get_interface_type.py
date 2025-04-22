@@ -32,7 +32,7 @@
 # ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
 # POSSIBILITY OF SUCH DAMAGE.
 
-import action_tutorials_interfaces.action
+from example_interfaces.action import Fibonacci
 from joy_teleop.joy_teleop import get_interface_type
 from joy_teleop.joy_teleop import JoyTeleopException
 
@@ -55,9 +55,9 @@ def test_service():
 
 
 def test_action():
-    interface_type = get_interface_type('action_tutorials_interfaces/action/Fibonacci', 'action')
+    interface_type = get_interface_type('example_interfaces/action/Fibonacci', 'action')
     action = interface_type.Goal()
-    assert isinstance(action, action_tutorials_interfaces.action.Fibonacci.Goal)
+    assert isinstance(action, Fibonacci.Goal)
 
 
 def test_bad_message():

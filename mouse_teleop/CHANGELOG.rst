@@ -2,6 +2,9 @@
 Changelog for package mouse_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+
 1.8.0 (2025-04-16)
 ------------------
 * Default to TwistStamped (`#90 <https://github.com/ros-teleop/teleop_tools/issues/90>`_)

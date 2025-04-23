@@ -2,6 +2,12 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Use Fibonacci from example_interfaces (`#97 <https://github.com/ros-teleop/teleop_tools/issues/97>`_)
+* Add missing test dependency action_tutorials_interfaces (`#95 <https://github.com/ros-teleop/teleop_tools/issues/95>`_)
+* Contributors: Noel Jiménez García
+
 1.8.0 (2025-04-16)
 ------------------
 

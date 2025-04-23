@@ -2,6 +2,9 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+1.8.0 (2025-04-16)
+------------------
+
 1.7.0 (2024-11-06)
 ------------------
 * Fix excessive cpu consumption (`#92 <https://github.com/ros-teleop/teleop_tools/issues/92>`_)

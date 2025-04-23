@@ -41,7 +41,7 @@
 import signal
 import tkinter
 
-from geometry_msgs.msg import Twist, Vector3
+from geometry_msgs.msg import TwistStamped, Vector3
 import numpy
 import rclpy
 from rclpy.node import Node
@@ -58,7 +58,7 @@ class MouseTeleop(Node):
         self._holonomic = self.declare_parameter('holonomic', False).value
 
         # Create twist publisher:
-        self._pub_cmd = self.create_publisher(Twist, 'mouse_vel', 10)
+        self._pub_cmd = self.create_publisher(TwistStamped, 'mouse_vel', 10)
 
         # Initialize twist components to zero:
         self._v_x = 0.0
@@ -250,8 +250,13 @@ class MouseTeleop(Node):
         lin = Vector3(x=v_x, y=v_y, z=0.0)
         ang = Vector3(x=0.0, y=0.0, z=w)
 
-        twist = Twist(linear=lin, angular=ang)
-        self._pub_cmd.publish(twist)
+        twist_stamped = TwistStamped()
+        twist_stamped.header.stamp = rclpy.clock.Clock().now().to_msg()
+        twist_stamped.header.frame_id = 'mouse_teleop'
+        twist_stamped.twist.linear = lin
+        twist_stamped.twist.angular = ang
+
+        self._pub_cmd.publish(twist_stamped)
 
     def _publish_twist(self):
         self._send_motion()

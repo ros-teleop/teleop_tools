@@ -127,7 +127,7 @@ class SimpleKeyTeleop(Node):
 
         self._interface = interface
 
-        self._publish_stamped_twist = self.declare_parameter('twist_stamped_enabled', False).value
+        self._publish_stamped_twist = self.declare_parameter('twist_stamped_enabled', True).value
 
         if self._publish_stamped_twist:
             self._pub_cmd = self.create_publisher(TwistStamped, 'key_vel',

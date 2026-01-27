@@ -7,19 +7,19 @@ joy_teleop:
       topic_name: cmd_vel
       deadman_buttons: [4]
       axis_mappings:
-        linear-x:
+        twist-linear-x:
           axis: 1
           scale: 0.5
           offset: -0.03
-        angular-z:
+        twist-angular-z:
           axis: 0
           scale: 0.5
           offset: 0
-        linear-y:
+        twist-linear-y:
           axis: 2
           scale: 0.3
           offset: 0
-        linear-z:
+        twist-linear-z:
           button: 2
           scale: 3.0
         header-frame_id:

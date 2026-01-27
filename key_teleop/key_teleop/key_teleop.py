@@ -182,7 +182,7 @@ class SimpleKeyTeleop(Node):
         now = self.get_clock().now()
         keys = []
         for a in self._last_pressed:
-            if now - self._last_pressed[a] < Duration(seconds=0.4):
+            if now - self._last_pressed[a] < Duration(seconds=0.5):
                 keys.append(a)
         linear = 0.0
         angular = 0.0

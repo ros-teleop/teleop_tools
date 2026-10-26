@@ -2,8 +2,8 @@
 Changelog for package mouse_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Forthcoming
------------
+2.1.0 (2026-10-26)
+------------------
 * Cleanup bsd 3 clause license usage (`#103 <https://github.com/ros-teleop/teleop_tools/issues/103>`_)
 * Contributors: Alejandro Hernández Cordero
 

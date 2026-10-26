@@ -2,6 +2,13 @@
 Changelog for package joy_teleop
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
+Forthcoming
+-----------
+* Add possibility of checking the negative value of the axis (`#94 <https://github.com/ros-teleop/teleop_tools/issues/94>`_)
+* Fix axis_mappings for TwistStamped type (`#98 <https://github.com/ros-teleop/teleop_tools/issues/98>`_)
+* Cleanup bsd 3 clause license usage (`#103 <https://github.com/ros-teleop/teleop_tools/issues/103>`_)
+* Contributors: Alejandro Hernández Cordero, Orhan G. Hafif, thomaspeyrucain
+
 2.0.0 (2025-04-23)
 ------------------
 * Use Fibonacci from example_interfaces (`#97 <https://github.com/ros-teleop/teleop_tools/issues/97>`_)
